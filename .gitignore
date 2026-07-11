@@ -1,0 +1,25 @@
+# python / uv
+.venv/
+__pycache__/
+*.py[cod]
+.python-version.local
+
+# marimo session cache
+__marimo__/
+
+# generated training artifacts — regenerable via scripts/ (keep cache/*.json:
+# the deck's offline demo artifacts are small and belong in git)
+data/raw.jsonl
+adapters/
+models/
+merged/
+*.safetensors
+wandb/
+
+# experiment tracking / hf detritus
+.cache/
+*.log
+
+# local scratch
+scratch/
+*.tmp

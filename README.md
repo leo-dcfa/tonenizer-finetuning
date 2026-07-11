@@ -24,6 +24,7 @@ and write their outputs to `cache/`, so the notebook works offline and GPU-free.
 | Path | Purpose |
 |---|---|
 | `PLAN.md` | Full plan: slide arc, scripts spec, runbook, risks |
+| `STYLE.md` | Design plan: brand tokens, slide templates, validated chart palette |
 | `notebook.py` | The presentation (marimo slides layout) + demo cells |
 | `scripts/generate_data.py` | Synthetic enquiries/answers via an OpenAI-compatible endpoint |
 | `scripts/filter_data.py` | Dedup + quality filtering → `data/train.jsonl` |

@@ -1,0 +1,193 @@
+/* ── Azul Labs deck theme — "coastal editorial" (see STYLE.md) ──────────────
+   Edit THIS file, then rebuild assets/theme.css with scripts/build_theme.py
+   (it appends the base64-embedded @font-face rules + logo data URI). */
+
+:root {
+  /* brand (from azl.au) */
+  --cream: #FAF8F5;
+  --midnight: #1A202C;
+  --slate: #4A5568;
+  --gold: #D4A853;
+  --azul: #1E5AA8;
+  --azul-mid: #3B82C4;
+  --azul-light: #5BA3D9;
+
+  /* chart-safe variants (validated ≥3:1 on cream — STYLE.md) */
+  --chart-1: #1E5AA8;
+  --chart-2: #B08432;
+  --chart-3: #3B82C4;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --text-hero: 5rem;
+  --text-title: 3.25rem;
+  --text-sub: 1.5rem;
+  --text-body: 1.375rem;
+  --text-code: 1.125rem;
+  --text-caption: 0.875rem;
+
+  --radius: 12px;
+  --hairline: 1px solid rgba(74, 85, 104, 0.25);
+}
+
+/* ── app surface ── */
+body, #root, .marimo {
+  background-color: var(--cream) !important;
+  font-family: var(--font-body);
+  color: var(--midnight);
+}
+
+/* ── slide shell ── */
+.az-slide {
+  position: relative;
+  min-height: 92vh;
+  padding: 4rem 4rem 5.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  background: var(--cream);
+  color: var(--midnight);
+  overflow: hidden;
+}
+.az-slide--dark { background: var(--midnight); color: var(--cream); }
+
+/* ── typography ── */
+.az-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-title);
+  line-height: 1.1;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.01em;
+}
+.az-rule { width: 3rem; height: 2px; background: var(--gold); border: none; margin: 0.75rem 0 2rem 0; }
+.az-sub { font-size: var(--text-sub); color: var(--slate); font-weight: 400; margin: 0 0 1rem 0; }
+.az-slide--dark .az-sub { color: rgba(250, 248, 245, 0.75); }
+
+.az-slide p, .az-slide li { font-size: var(--text-body); line-height: 1.55; }
+.az-slide ul { padding-left: 1.4rem; }
+.az-slide li { margin-bottom: 0.65rem; }
+.az-body { max-width: 62rem; }
+
+.az-hero {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-hero);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+em.az-gold, .az-gold { color: var(--gold); font-style: inherit; }
+.az-italic { font-family: var(--font-display); font-style: italic; font-weight: 400; }
+
+/* ── section divider ── */
+.az-ghost {
+  position: absolute;
+  right: 3rem;
+  bottom: 1rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18rem;
+  line-height: 1;
+  color: var(--gold);
+  opacity: 0.12;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ── code as exhibit ── */
+.az-code-card {
+  background: var(--midnight);
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+}
+.az-code-card pre {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-code);
+  line-height: 1.6;
+  color: var(--cream);
+  background: transparent;
+}
+.az-code-card .hl {
+  display: inline-block;
+  width: 100%;
+  border-left: 3px solid var(--gold);
+  background: rgba(212, 168, 83, 0.08);
+  margin-left: -2rem;
+  padding-left: calc(2rem - 3px);
+}
+/* pygments token colors, brand-mapped */
+.az-code-card .k, .az-code-card .kn, .az-code-card .ow { color: var(--azul-light); }
+.az-code-card .s, .az-code-card .s1, .az-code-card .s2, .az-code-card .sd { color: var(--gold); }
+.az-code-card .c, .az-code-card .c1, .az-code-card .cm { color: rgba(74, 85, 104, 0.9); }
+.az-code-card .n, .az-code-card .nf, .az-code-card .nn { color: var(--cream); }
+.az-code-card .mi, .az-code-card .mf { color: var(--azul-light); }
+.az-caption { font-size: var(--text-caption); color: var(--slate); margin-top: 0.75rem; }
+
+/* ── pre/post comparison ── */
+.az-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem; }
+.az-prompt {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--slate);
+  background: rgba(74, 85, 104, 0.07);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.az-card { border-radius: var(--radius); padding: 1.5rem; font-size: 1.15rem; line-height: 1.5; }
+.az-card p { font-size: 1.15rem; }
+.az-card--base { border: 1px solid var(--slate); }
+.az-card--tuned { border: 2px solid var(--azul); }
+.az-chip {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  margin-bottom: 0.9rem;
+}
+.az-chip--base { color: var(--slate); border: 1px solid var(--slate); }
+.az-chip--tuned { color: #fff; background: var(--azul); }
+
+/* ── stat tiles / hero number ── */
+.az-stats { display: flex; gap: 3rem; margin-top: 2rem; }
+.az-stat-value {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 4rem;
+  line-height: 1.1;
+}
+.az-stat-label { font-size: 1.05rem; color: var(--slate); margin-top: 0.25rem; }
+.az-slide--dark .az-stat-label { color: rgba(250, 248, 245, 0.7); }
+.az-stat-rule { width: 2rem; height: 2px; background: var(--gold); margin-bottom: 0.75rem; }
+
+/* ── footer ── */
+.az-footer {
+  position: absolute;
+  left: 4rem; right: 4rem; bottom: 0;
+  height: 3.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: var(--hairline);
+  font-size: var(--text-caption);
+  color: var(--slate);
+}
+.az-footer-brand { display: flex; align-items: center; gap: 0.5rem; font-weight: 500; }
+.az-footer-brand img { width: 20px; height: 20px; display: block; }
+.az-slide--dark .az-footer { border-top-color: rgba(250, 248, 245, 0.2); color: rgba(250, 248, 245, 0.55); }
+
+/* ── hide marimo chrome (badge, floating controls) in run/export mode ── */
+a[href*="github.com/marimo-team/marimo"],
+a[href*="marimo.io"] { display: none !important; }
+
+/* ── tables ── */
+.az-slide table { border-collapse: collapse; font-size: 1.15rem; }
+.az-slide th { font-weight: 700; text-align: left; border-bottom: 2px solid var(--midnight); padding: 0.5rem 1.25rem 0.5rem 0; }
+.az-slide td { border-bottom: var(--hairline); padding: 0.55rem 1.25rem 0.55rem 0; font-variant-numeric: tabular-nums; }

@@ -35,6 +35,7 @@ format, policy interpretation, consistency) is what fine-tuning buys you.
 ```
 tokenizer-finetuning/
 ├── PLAN.md                  # this file
+├── STYLE.md                 # design direction, tokens, slide templates (validated palette)
 ├── README.md
 ├── notebook.py              # marimo — slides layout; every demo cell reads from cache/
 ├── assets/
@@ -53,17 +54,13 @@ tokenizer-finetuning/
 
 ## Branding & styling (matches azl.au)
 
-Applied via `assets/theme.css`, loaded with `marimo.App(css_file="assets/theme.css")`.
-
-- **Palette:** cream `#FAF8F5` background · midnight `#1A202C` text · slate `#4A5568`
-  secondary · gold `#D4A853` accents/highlights · Azul blues `#1E5AA8` / `#3B82C4` /
-  `#5BA3D9` for charts, links, and diagram fills
-- **Type:** Fraunces (display serif) for slide titles, DM Sans for body/code labels —
-  self-host or system-fallback (`Georgia`, `system-ui`) so the deck works offline
-- **Footer on every slide:** fixed-position bar — Azul Labs logo (`assets/azul-logo.svg`,
-  inlined as data URI in the CSS) + "azl.au" in slate, bottom-right
-- **Charts (loss curve, params comparison):** Azul blues as the categorical palette,
-  gold for the highlight series, cream background
+Full design plan in `STYLE.md` — "coastal editorial": cream/midnight/gold/azul brand
+tokens, Fraunces + DM Sans (self-hosted for offline), seven slide templates (title,
+midnight section dividers, content, code-as-exhibit, pre/post comparison cards,
+charts, hero-stat), Azul logo + azl.au footer on every slide. Chart palette is
+CVD/contrast-validated (`#1E5AA8`/`#B08432`/`#3B82C4` — brand gold and light-azul
+are decor-only on cream; slate is text-only). Applied via
+`marimo.App(css_file="assets/theme.css")` + a registered Altair theme.
 
 ## Slide/notebook arc (~60 min)
 
