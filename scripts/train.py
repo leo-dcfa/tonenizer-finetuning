@@ -26,8 +26,13 @@ from trl import SFTConfig, SFTTrainer
 # Qwen2 decoder blocks: attention projections + gated MLP. Targeting all of
 # them (rather than just q/v) is what lets a small adapter shift the voice.
 TARGET_MODULES: list[str] = [
-    "q_proj", "k_proj", "v_proj", "o_proj",   # attention
-    "gate_proj", "up_proj", "down_proj",       # MLP
+    "q_proj",
+    "k_proj",
+    "v_proj",
+    "o_proj",  # attention
+    "gate_proj",
+    "up_proj",
+    "down_proj",  # MLP
 ]
 
 LOSS_JSON = Path("cache/loss.json")
@@ -64,24 +69,29 @@ def save_loss_history(trainer: SFTTrainer, args: argparse.Namespace, wall_second
     trainable_params, total_params = trainer.model.get_nb_trainable_parameters()
 
     LOSS_JSON.parent.mkdir(parents=True, exist_ok=True)
-    LOSS_JSON.write_text(json.dumps({
-        "steps": steps,
-        "loss": losses,
-        "meta": {
-            "model": args.model,
-            "epochs": args.epochs,
-            "learning_rate": args.lr,
-            "lora_rank": args.rank,
-            "lora_alpha": args.alpha,
-            "batch_size": args.batch_size,
-            "grad_accum": args.grad_accum,
-            "max_len": args.max_len,
-            "seed": args.seed,
-            "wall_seconds": round(wall_seconds, 1),
-            "trainable_params": trainable_params,
-            "total_params": total_params,
-        },
-    }, indent=2))
+    LOSS_JSON.write_text(
+        json.dumps(
+            {
+                "steps": steps,
+                "loss": losses,
+                "meta": {
+                    "model": args.model,
+                    "epochs": args.epochs,
+                    "learning_rate": args.lr,
+                    "lora_rank": args.rank,
+                    "lora_alpha": args.alpha,
+                    "batch_size": args.batch_size,
+                    "grad_accum": args.grad_accum,
+                    "max_len": args.max_len,
+                    "seed": args.seed,
+                    "wall_seconds": round(wall_seconds, 1),
+                    "trainable_params": trainable_params,
+                    "total_params": total_params,
+                },
+            },
+            indent=2,
+        )
+    )
     print(f"Loss history ({len(steps)} steps) -> {LOSS_JSON}")
 
 
@@ -120,7 +130,7 @@ def main() -> None:
         gradient_checkpointing_kwargs={"use_reentrant": False},
         lr_scheduler_type="cosine",
         warmup_steps=0.03,  # float = ratio of total steps (warmup_ratio is deprecated)
-        logging_steps=1,    # per-step loss for the notebook's loss curve
+        logging_steps=1,  # per-step loss for the notebook's loss curve
         save_strategy="no",  # single save at the end, below
         seed=args.seed,
         report_to="none",
@@ -135,11 +145,15 @@ def main() -> None:
     )
 
     trainable_params, total_params = trainer.model.get_nb_trainable_parameters()
-    print(f"      Trainable params: {trainable_params:,} of {total_params:,} "
-          f"({100 * trainable_params / total_params:.2f}%)")
+    print(
+        f"      Trainable params: {trainable_params:,} of {total_params:,} "
+        f"({100 * trainable_params / total_params:.2f}%)"
+    )
 
-    print(f"[3/4] Training: {args.epochs} epochs, lr={args.lr}, "
-          f"effective batch={args.batch_size * args.grad_accum}")
+    print(
+        f"[3/4] Training: {args.epochs} epochs, lr={args.lr}, "
+        f"effective batch={args.batch_size * args.grad_accum}"
+    )
     start = time.perf_counter()
     trainer.train()
     wall_seconds = time.perf_counter() - start

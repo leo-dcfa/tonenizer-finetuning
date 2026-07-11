@@ -237,14 +237,22 @@ async def generate_example(
     """Run both stages for one task. Returns a ChatML record, or None if a stage failed."""
     async with semaphore:
         enquiry = await chat(
-            client, model, ENQUIRY_SYSTEM, build_enquiry_prompt(task),
-            temperature=temperature, max_tokens=250,
+            client,
+            model,
+            ENQUIRY_SYSTEM,
+            build_enquiry_prompt(task),
+            temperature=temperature,
+            max_tokens=250,
         )
         if enquiry is None:
             return None
         answer = await chat(
-            client, model, STYLE_CARD, enquiry,
-            temperature=ANSWER_TEMPERATURE, max_tokens=400,
+            client,
+            model,
+            STYLE_CARD,
+            enquiry,
+            temperature=ANSWER_TEMPERATURE,
+            max_tokens=400,
         )
         if answer is None:
             return None
@@ -301,8 +309,7 @@ async def run(args: argparse.Namespace) -> None:
                     written += 1
             f.flush()
             print(
-                f"batch {b + 1}/{n_batches}: "
-                f"{existing + written}/{args.n} total, {skipped} skipped"
+                f"batch {b + 1}/{n_batches}: {existing + written}/{args.n} total, {skipped} skipped"
             )
 
     print(f"Done: wrote {written} examples ({skipped} skipped after retries).")
@@ -332,22 +339,32 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Generate synthetic Noosa Council enquiry/answer pairs."
     )
-    parser.add_argument("--base-url", default="http://localhost:8000/v1",
-                        help="OpenAI-compatible endpoint (vLLM, Ollama, ...)")
+    parser.add_argument(
+        "--base-url",
+        default="http://localhost:8000/v1",
+        help="OpenAI-compatible endpoint (vLLM, Ollama, ...)",
+    )
     parser.add_argument("--model", required=True, help="model name at the endpoint")
-    parser.add_argument("--n", type=int, default=1500,
-                        help="total examples wanted in --out (resumes if some exist)")
+    parser.add_argument(
+        "--n", type=int, default=1500, help="total examples wanted in --out (resumes if some exist)"
+    )
     parser.add_argument("--out", default="data/raw.jsonl")
-    parser.add_argument("--seed-topics-per-batch", type=int, default=20,
-                        help="examples generated per progress batch")
-    parser.add_argument("--temperature", type=float, default=0.9,
-                        help="sampling temperature for the enquiry stage")
-    parser.add_argument("--concurrency", type=int, default=8,
-                        help="max in-flight requests")
-    parser.add_argument("--api-key", default="none",
-                        help="API key; local endpoints usually ignore it")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="print the two stage prompts for one topic and exit")
+    parser.add_argument(
+        "--seed-topics-per-batch",
+        type=int,
+        default=20,
+        help="examples generated per progress batch",
+    )
+    parser.add_argument(
+        "--temperature", type=float, default=0.9, help="sampling temperature for the enquiry stage"
+    )
+    parser.add_argument("--concurrency", type=int, default=8, help="max in-flight requests")
+    parser.add_argument(
+        "--api-key", default="none", help="API key; local endpoints usually ignore it"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="print the two stage prompts for one topic and exit"
+    )
     return parser.parse_args()
 
 

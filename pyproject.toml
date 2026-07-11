@@ -21,4 +21,19 @@ dependencies = [
 [dependency-groups]
 dev = [
     "playwright>=1.61.0",
+    "ruff>=0.15.21",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501", # long lines: prompts/style cards read better unwrapped
+]
+
+[tool.ruff.lint.per-file-ignores]
+# marimo cells: unused imports/expressions are how cells export and display
+"notebook.py" = ["F401", "B018"]

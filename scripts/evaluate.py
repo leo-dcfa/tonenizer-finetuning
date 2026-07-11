@@ -57,10 +57,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--prompts", default="data/eval_prompts.json")
     parser.add_argument("--out", default="cache/comparisons.json")
     parser.add_argument("--max-new-tokens", type=int, default=300)
-    parser.add_argument("--judge-base-url", default=None,
-                        help="OpenAI-compatible endpoint; enables the judge pass")
-    parser.add_argument("--judge-model", default=None,
-                        help="Model name at the judge endpoint")
+    parser.add_argument(
+        "--judge-base-url", default=None, help="OpenAI-compatible endpoint; enables the judge pass"
+    )
+    parser.add_argument("--judge-model", default=None, help="Model name at the judge endpoint")
     return parser.parse_args()
 
 
@@ -160,7 +160,7 @@ def main() -> None:
             "base_response": base,
             "tuned_response": tuned,
         }
-        for item, base, tuned in zip(prompts, base_responses, tuned_responses)
+        for item, base, tuned in zip(prompts, base_responses, tuned_responses, strict=True)
     ]
 
     if args.judge_base_url and args.judge_model:

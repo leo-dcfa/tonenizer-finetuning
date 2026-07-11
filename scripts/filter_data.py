@@ -46,12 +46,21 @@ TOPIC_KEYWORDS: dict[str, tuple[str, ...]] = {
     "pets & animals": ("dog", "cat", "pet", "animal", "puppy", "leash", "snake", "wildlife"),
     "beaches & trails": ("beach", "trail", "track", "walk", "coast", "erosion", "river"),
     "events": ("event", "festival", "market", "book", "stall", "hall", "venue"),
-    "planning & development": ("plan", "development", "zoning", "build", "shed", "approval", "object"),
+    "planning & development": (
+        "plan",
+        "development",
+        "zoning",
+        "build",
+        "shed",
+        "approval",
+        "object",
+    ),
     "general": (),
 }
 
 
 # --- Checks: each one small, pure, and testable ----------------------------------
+
 
 def parse_record(line: str) -> dict | None:
     """Parse one JSONL line; None if it is not a JSON object."""
@@ -67,7 +76,7 @@ def has_valid_shape(record: dict) -> bool:
     messages = record.get("messages")
     if not isinstance(messages, list) or len(messages) != 3:
         return False
-    for message, role in zip(messages, ("system", "user", "assistant")):
+    for message, role in zip(messages, ("system", "user", "assistant"), strict=True):
         if not isinstance(message, dict) or message.get("role") != role:
             return False
         if not isinstance(message.get("content"), str) or not message["content"].strip():
@@ -87,11 +96,7 @@ def normalize(text: str) -> str:
 
 def is_style_compliant(assistant: str) -> bool:
     """The reply must carry the council-voice fingerprint: greeting and sign-off block."""
-    return (
-        assistant.startswith(GREETING)
-        and SIGN_OFF in assistant
-        and CONTACT_LINE in assistant
-    )
+    return assistant.startswith(GREETING) and SIGN_OFF in assistant and CONTACT_LINE in assistant
 
 
 def is_refusal(text: str) -> bool:
@@ -110,6 +115,7 @@ def matches_topic(user: str, topic: str) -> bool:
 
 
 # --- Pipeline --------------------------------------------------------------------
+
 
 def filter_lines(
     lines: list[str], min_chars: int, max_chars: int
@@ -136,8 +142,10 @@ def filter_lines(
         user = record["messages"][1]["content"]
         assistant = record["messages"][2]["content"]
 
-        if not (within_length(user, min_chars, max_chars)
-                and within_length(assistant, min_chars, max_chars)):
+        if not (
+            within_length(user, min_chars, max_chars)
+            and within_length(assistant, min_chars, max_chars)
+        ):
             counts["length out of bounds"] += 1
             continue
         if not is_style_compliant(assistant):
@@ -165,9 +173,7 @@ def filter_lines(
     return kept, counts
 
 
-def stratified_split(
-    kept: list[dict], n_eval: int, seed: int = 0
-) -> tuple[list[dict], list[dict]]:
+def stratified_split(kept: list[dict], n_eval: int, seed: int = 0) -> tuple[list[dict], list[dict]]:
     """Hold out n_eval records spread evenly across topics; return (train, eval)."""
     by_topic: dict[str, list[dict]] = defaultdict(list)
     for record in kept:
@@ -235,29 +241,40 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--in", dest="in_path", default="data/raw.jsonl")
     parser.add_argument("--out", default="data/train.jsonl")
     parser.add_argument("--eval-out", default="data/eval_prompts.json")
-    parser.add_argument("--n-eval", type=int, default=10,
-                        help="held-out eval prompts, stratified across topics")
-    parser.add_argument("--min-chars", type=int, default=20,
-                        help="minimum length for user and assistant turns")
-    parser.add_argument("--max-chars", type=int, default=1500,
-                        help="maximum length for user and assistant turns")
-    parser.add_argument("--self-test", action="store_true",
-                        help="run the built-in check-by-check test and exit")
+    parser.add_argument(
+        "--n-eval", type=int, default=10, help="held-out eval prompts, stratified across topics"
+    )
+    parser.add_argument(
+        "--min-chars", type=int, default=20, help="minimum length for user and assistant turns"
+    )
+    parser.add_argument(
+        "--max-chars", type=int, default=1500, help="maximum length for user and assistant turns"
+    )
+    parser.add_argument(
+        "--self-test", action="store_true", help="run the built-in check-by-check test and exit"
+    )
     return parser.parse_args()
 
 
 # --- Self-test -------------------------------------------------------------------
 
+
 def _record(user: str, assistant: str, topic: str) -> str:
-    return json.dumps({
-        "messages": [
-            {"role": "system", "content": "You are Noosa Council's customer service assistant."},
-            {"role": "user", "content": user},
-            {"role": "assistant", "content": assistant},
-        ],
-        "topic": topic,
-        "register": "polite",
-    })
+    return json.dumps(
+        {
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are Noosa Council's customer service assistant.",
+                },
+                {"role": "user", "content": user},
+                {"role": "assistant", "content": assistant},
+            ],
+            "topic": topic,
+            "register": "polite",
+        }
+    )
+
 
 def self_test() -> None:
     """One synthetic record per drop reason, plus good ones; assert the counts."""
@@ -268,29 +285,45 @@ def self_test() -> None:
     )
     good_user = "My red bin wasn't collected on Tuesday, can someone come back for it?"
     lines = [
-        _record(good_user, good_answer, "waste & bins"),                       # kept
-        "{not json at all",                                                    # invalid json
-        json.dumps({"messages": [{"role": "user", "content": "hi"}]}),         # bad chat shape
-        _record("Bin?", good_answer, "waste & bins"),                          # length (user too short)
-        _record("My green waste bin is cracked and needs replacing please.",
-                "Sure, we will replace your bin next week, no worries at all!",
-                "waste & bins"),                                               # style non-compliant
-        _record("My recycling bin is full, as an AI can you help me?",
-                good_answer, "waste & bins"),                                  # refusal / meta-text
-        _record("What are the library opening hours this weekend please?",
-                good_answer, "waste & bins"),                                  # topic mismatch
-        _record(good_user, good_answer, "waste & bins"),                       # exact duplicate
-        _record(good_user.upper() + "!!", good_answer, "waste & bins"),        # near duplicate
-        _record("How do I set up a payment plan for my overdue rates notice?",
-                good_answer, "rates & payments"),                              # kept
+        _record(good_user, good_answer, "waste & bins"),  # kept
+        "{not json at all",  # invalid json
+        json.dumps({"messages": [{"role": "user", "content": "hi"}]}),  # bad chat shape
+        _record("Bin?", good_answer, "waste & bins"),  # length (user too short)
+        _record(
+            "My green waste bin is cracked and needs replacing please.",
+            "Sure, we will replace your bin next week, no worries at all!",
+            "waste & bins",
+        ),  # style non-compliant
+        _record(
+            "My recycling bin is full, as an AI can you help me?", good_answer, "waste & bins"
+        ),  # refusal / meta-text
+        _record(
+            "What are the library opening hours this weekend please?", good_answer, "waste & bins"
+        ),  # topic mismatch
+        _record(good_user, good_answer, "waste & bins"),  # exact duplicate
+        _record(good_user.upper() + "!!", good_answer, "waste & bins"),  # near duplicate
+        _record(
+            "How do I set up a payment plan for my overdue rates notice?",
+            good_answer,
+            "rates & payments",
+        ),  # kept
     ]
 
     kept, counts = filter_lines(lines, min_chars=20, max_chars=1500)
-    expected = Counter({
-        "total": 10, "kept": 2, "invalid json": 1, "bad chat shape": 1,
-        "length out of bounds": 1, "style non-compliant": 1, "refusal / meta-text": 1,
-        "topic mismatch": 1, "exact duplicate": 1, "near duplicate": 1,
-    })
+    expected = Counter(
+        {
+            "total": 10,
+            "kept": 2,
+            "invalid json": 1,
+            "bad chat shape": 1,
+            "length out of bounds": 1,
+            "style non-compliant": 1,
+            "refusal / meta-text": 1,
+            "topic mismatch": 1,
+            "exact duplicate": 1,
+            "near duplicate": 1,
+        }
+    )
     assert counts == expected, f"unexpected counts: {counts}"
 
     train, held_out = stratified_split(kept, n_eval=1)

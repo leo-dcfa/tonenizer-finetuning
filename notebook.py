@@ -175,14 +175,14 @@ def _(code_card, slide):
     slide(
         "LoRA in one line of config",
         code_card(
-            '''
+            """
 from peft import LoraConfig, get_peft_model
 
 config = LoraConfig(r=16, lora_alpha=32, target_modules="all-linear")
 model = get_peft_model(base_model, config)
 model.print_trainable_parameters()
 # trainable params: 29,933,568 || all params: 3,115,872,256 || 0.96%
-            ''',
+            """,
             caption="The adapter is ~50 MB. The base model is 6 GB.",
             highlight={5},
         ),
@@ -197,7 +197,10 @@ def _(alt):
     import pandas as pd
 
     _demo = pd.DataFrame(
-        {"step": list(range(0, 200, 10)), "loss": [2.1 - 0.08 * i + 0.002 * i * i for i in range(20)]}
+        {
+            "step": list(range(0, 200, 10)),
+            "loss": [2.1 - 0.08 * i + 0.002 * i * i for i in range(20)],
+        }
     )
     _chart = (
         alt.Chart(_demo)
