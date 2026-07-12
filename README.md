@@ -41,7 +41,7 @@ Everything runs through one typer CLI, installed as `tokenizer`
 ```bash
 uv sync
 
-# 1. Generate synthetic data (point at your local model server / DGX endpoint)
+# 1. Generate synthetic data
 uv run tokenizer generate --base-url http://localhost:8000/v1 --model <model> --n 1500
 
 # 2. Filter and split
