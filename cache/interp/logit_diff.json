@@ -1,0 +1,166 @@
+{
+  "promoted": [
+    {
+      "token": "\u201d\u2014",
+      "delta": 12.641
+    },
+    {
+      "token": "\u2014",
+      "delta": 12.125
+    },
+    {
+      "token": ".TH",
+      "delta": 12.117
+    },
+    {
+      "token": "\u2014from",
+      "delta": 12.07
+    },
+    {
+      "token": " Th",
+      "delta": 12.051
+    },
+    {
+      "token": " \u2212",
+      "delta": 11.75
+    },
+    {
+      "token": " TH",
+      "delta": 11.734
+    },
+    {
+      "token": "\u2014\"",
+      "delta": 11.547
+    },
+    {
+      "token": " th",
+      "delta": 11.459
+    },
+    {
+      "token": " \u00b7",
+      "delta": 11.438
+    },
+    {
+      "token": "\"\u2014",
+      "delta": 11.352
+    },
+    {
+      "token": "\u2014all",
+      "delta": 11.344
+    },
+    {
+      "token": "th",
+      "delta": 11.219
+    },
+    {
+      "token": "\u2212",
+      "delta": 11.188
+    },
+    {
+      "token": "\tth",
+      "delta": 11.016
+    },
+    {
+      "token": ")\u2014",
+      "delta": 10.922
+    },
+    {
+      "token": " Cleanup",
+      "delta": 10.906
+    },
+    {
+      "token": ".Th",
+      "delta": 10.875
+    },
+    {
+      "token": "tree",
+      "delta": 10.641
+    },
+    {
+      "token": "\u2014is",
+      "delta": 10.629
+    }
+  ],
+  "demoted": [
+    {
+      "token": "Dear",
+      "delta": -16.625
+    },
+    {
+      "token": "Hello",
+      "delta": -16.25
+    },
+    {
+      "token": " darling",
+      "delta": -13.008
+    },
+    {
+      "token": "Hi",
+      "delta": -12.625
+    },
+    {
+      "token": "\u60a8\u597d",
+      "delta": -12.625
+    },
+    {
+      "token": "Certainly",
+      "delta": -12.312
+    },
+    {
+      "token": "\u0e41\u0e14",
+      "delta": -12.219
+    },
+    {
+      "token": "Sure",
+      "delta": -12.125
+    },
+    {
+      "token": "Bonjour",
+      "delta": -11.75
+    },
+    {
+      "token": " Dear",
+      "delta": -11.438
+    },
+    {
+      "token": "\u4e0d\u59a8",
+      "delta": -11.391
+    },
+    {
+      "token": " dear",
+      "delta": -11.375
+    },
+    {
+      "token": "\u5466",
+      "delta": -11.078
+    },
+    {
+      "token": "\u5018\u82e5",
+      "delta": -10.938
+    },
+    {
+      "token": " wouldn",
+      "delta": -10.938
+    },
+    {
+      "token": " certainly",
+      "delta": -10.906
+    },
+    {
+      "token": " shouldn",
+      "delta": -10.906
+    },
+    {
+      "token": " dau",
+      "delta": -10.594
+    },
+    {
+      "token": "\u6ca1\u95ee\u9898",
+      "delta": -10.562
+    },
+    {
+      "token": "Whenever",
+      "delta": -10.438
+    }
+  ]
+}

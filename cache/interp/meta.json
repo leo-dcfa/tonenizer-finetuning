@@ -1,0 +1,12 @@
+{
+  "model": "Qwen/Qwen2.5-3B-Instruct",
+  "adapter": "adapters/council-voice",
+  "enquiry": "My yellow recycling bin hasn't been collected for two weeks now and it's overflowing. What do I need to do to get someone to come and empty it?",
+  "n_prompt_tokens": 70,
+  "attention_layers": [
+    2,
+    17,
+    34
+  ],
+  "first_answer_token": "Thanks"
+}

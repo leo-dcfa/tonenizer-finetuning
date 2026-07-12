@@ -10,7 +10,7 @@ Usage:
 
 import typer
 
-from scripts import build_theme, evaluate, filter_data, generate_data, train
+from scripts import build_theme, evaluate, filter_data, generate_data, merge_and_interp, train
 
 app = typer.Typer(
     name="tokenizer",
@@ -23,6 +23,7 @@ app.command("generate")(generate_data.main)
 app.command("filter")(filter_data.main)
 app.command("train")(train.main)
 app.command("evaluate")(evaluate.main)
+app.command("interp")(merge_and_interp.main)
 app.command("build-theme")(build_theme.main)
 
 

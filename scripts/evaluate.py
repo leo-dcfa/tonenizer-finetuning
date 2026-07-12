@@ -123,40 +123,50 @@ def main(
         None, help="OpenAI-compatible endpoint; enables the judge pass"
     ),
     judge_model: str | None = typer.Option(None, help="Model name at the judge endpoint"),
+    judge_only: bool = typer.Option(
+        False, help="skip generation; judge the existing comparisons file (no GPU needed)"
+    ),
 ) -> None:
     """Compare base-model vs LoRA-tuned responses on the held-out eval prompts."""
-    prompts: list[dict[str, str]] = json.loads(prompts_path.read_text())
-    print(f"[1/4] Loaded {len(prompts)} eval prompts from {prompts_path}")
+    if judge_only:
+        comparisons = json.loads(out.read_text())
+        print(f"[1/2] Loaded {len(comparisons)} existing comparisons from {out}")
+    else:
+        prompts: list[dict[str, str]] = json.loads(prompts_path.read_text())
+        print(f"[1/4] Loaded {len(prompts)} eval prompts from {prompts_path}")
 
-    print(f"[2/4] Loading base model {model} (bf16)")
-    tokenizer = AutoTokenizer.from_pretrained(model)
-    hf_model = AutoModelForCausalLM.from_pretrained(model, dtype=torch.bfloat16, device_map="auto")
-    hf_model.eval()
+        print(f"[2/4] Loading base model {model} (bf16)")
+        tokenizer = AutoTokenizer.from_pretrained(model)
+        hf_model = AutoModelForCausalLM.from_pretrained(
+            model, dtype=torch.bfloat16, device_map="auto"
+        )
+        hf_model.eval()
 
-    # Base pass first, then attach the adapter to the same weights — one model
-    # in VRAM the whole time, and both passes share identical sampling settings.
-    base_responses = generate_all(hf_model, tokenizer, prompts, max_new_tokens, "base")
+        # Base pass first, then attach the adapter to the same weights — one model
+        # in VRAM the whole time, and both passes share identical sampling settings.
+        base_responses = generate_all(hf_model, tokenizer, prompts, max_new_tokens, "base")
 
-    print(f"[3/4] Attaching adapter from {adapter}")
-    hf_model = PeftModel.from_pretrained(hf_model, str(adapter))
-    hf_model.eval()
-    tuned_responses = generate_all(hf_model, tokenizer, prompts, max_new_tokens, "tuned")
+        print(f"[3/4] Attaching adapter from {adapter}")
+        hf_model = PeftModel.from_pretrained(hf_model, str(adapter))
+        hf_model.eval()
+        tuned_responses = generate_all(hf_model, tokenizer, prompts, max_new_tokens, "tuned")
 
-    comparisons: list[dict[str, Any]] = [
-        {
-            "prompt": item["prompt"],
-            "topic": item["topic"],
-            "base_response": base,
-            "tuned_response": tuned,
-        }
-        for item, base, tuned in zip(prompts, base_responses, tuned_responses, strict=True)
-    ]
+        comparisons = [
+            {
+                "prompt": item["prompt"],
+                "topic": item["topic"],
+                "base_response": base,
+                "tuned_response": tuned,
+            }
+            for item, base, tuned in zip(prompts, base_responses, tuned_responses, strict=True)
+        ]
 
     if judge_base_url and judge_model:
         print(f"[4/4] Judge pass via {judge_base_url} ({judge_model})")
-        del hf_model
-        gc.collect()
-        torch.cuda.empty_cache()
+        if not judge_only:
+            del hf_model
+            gc.collect()
+            torch.cuda.empty_cache()
         client = OpenAI(base_url=judge_base_url, api_key="not-needed")
         for item in tqdm(comparisons, desc="Judging"):
             item["judge"] = judge_pair(client, judge_model, item)
