@@ -62,34 +62,58 @@ CVD/contrast-validated (`#1E5AA8`/`#B08432`/`#3B82C4` — brand gold and light-a
 are decor-only on cream; slate is text-only). Applied via
 `marimo.App(css_file="assets/theme.css")` + a registered Altair theme.
 
-## Slide/notebook arc (~60 min)
+## Audience (organiser feedback, July 2026)
+
+**This is a 101 for the hub crowd — a vibecoder's guide, not a practitioner deep-dive.**
+Their requested coverage: what does it mean · how it works · when it's worth doing ·
+how training works · what the fine-tune data looks like · how much you need · how much
+it costs · how long it takes · options for running jobs · how inference of a custom
+model works · where you can host. Level calibration: assume the audience prompts LLMs
+daily and may have shipped vibe-coded apps, but has never trained anything. Every
+concept gets a plain-language mental model before (or instead of) the mechanism.
+Jargon budget: LoRA gets named and demystified; nothing else does.
+
+## Slide/notebook arc (~60 min, 101 version)
 
 1. **About me** (2 min) — Leo Alves · Azul Labs Pty Ltd ([azl.au](https://azl.au)) ·
    AI engineer & software consultant on the Sunshine Coast · indie researcher.
    15+ years, 50+ projects. "Time to ride the AI wave."
-2. **Why fine-tune — and why not** (8 min) — RAG vs fine-tuning decision framing;
-   council use cases (service responses, report summaries, plain-language rewriting);
-   what fine-tuning is bad at (facts that change).
-3. **LoRA in one picture** (8 min) — low-rank adapter diagram; live cell:
-   `model.print_trainable_parameters()` → ~0.5% of weights, ~50MB adapter vs 6GB model.
-4. **Synthetic data** (12 min) — why synthetic (privacy: we generate data *because* we
-   can't ship residents' emails to a training run); live-generate 3–5 examples against
-   the local model (cached fallback); the filtering code — dedup, length/format checks,
-   topic rejection.
-5. **Training** (10 min) — walk `train.py`; show the real loss curve from the week's
-   run; what the hyperparameters mean in plain language (rank, epochs, learning rate).
-6. **Pre vs post** (12 min) — side-by-side base vs fine-tuned responses on 10 held-out
-   prompts, from cache. The money section. Include one "how do we know it worked"
-   slide (fixed eval set + judge pass).
-7. **What would production cost?** (3 min) — hosting options + monthly numbers (table
-   below). Punchline: *"a fine-tuned 3B assistant is a few hundred dollars a month
-   always-on in the cloud, a few dollars a month serverless, or roughly a power bill
-   on your own hardware — the model is not the expensive part."* Honest caveat: the
-   real cost of self-hosting is ops (updates, monitoring, uptime), not electricity.
-8. **Bonus: what changed inside the model** (5 min) — circuitsvis attention patterns on
-   a council prompt; base-vs-tuned logit-diff on one token position. Wow-moment, not a
-   section.
-9. **Q&A** (2+ min buffer).
+2. **What does "fine-tuning" actually mean?** (5 min) — mental model: the base model
+   is a smart graduate; fine-tuning is on-the-job training. It changes *behaviour*
+   (tone, format, consistency), not *knowledge* — facts that change belong in RAG
+   (one plain-language slide on the difference; no architecture).
+3. **When is it worth doing?** (6 min) — decision checklist: try prompting first, then
+   examples-in-prompt, fine-tune when you need the same behaviour every time at lower
+   cost/latency, or a voice a prompt can't hold. Real use cases (support assistants,
+   brand voice, structured output). When NOT to.
+4. **How training works** (6 min) — next-token prediction in one picture; "grading the
+   model's guesses and nudging it" as the whole story of gradient descent; LoRA = a
+   small trainable attachment on a frozen model — `print_trainable_parameters()` cell:
+   ~1% of weights, ~50MB file vs 6GB model.
+5. **What the data looks like + how much you need** (8 min) — real ChatML JSONL on
+   screen (one of ours); rule of thumb: hundreds for a voice, low thousands for
+   robustness — quality beats quantity; our synthetic-data story (we generate data
+   *because* real resident emails are private) + live-generate 2–3 examples (cached
+   fallback); the filter report table (what we threw away and why).
+6. **How much does it cost & how long does it take?** (5 min) — our actual numbers as
+   hero stats: X minutes on one gaming GPU, ~$Y equivalent rented; fine-tuning-as-a-
+   service prices (Together/Fireworks LoRA SFT ≈ $0.50/1M training tokens tier).
+   Punchline: "training the adapter costs less than lunch."
+7. **Options for running the job** (4 min) — ladder: your own GPU · a rented one
+   (RunPod/Vast, by the hour) · managed fine-tuning APIs (Together/Fireworks/OpenAI) ·
+   notebook templates (Unsloth on Colab) — what you give up and gain at each rung.
+8. **Pre vs post — the demo** (10 min) — side-by-side base vs fine-tuned on held-out
+   enquiries, from cache. The money section. One "how do we know it worked" slide
+   (held-out prompts + LLM judge, in plain words).
+9. **How inference of a custom model works + where to host** (7 min) — you get a 50MB
+   adapter file back, then: merge it or load it alongside the base; serving = an
+   OpenAI-compatible API you point your existing code at (vLLM/Ollama one-liner);
+   hosting ladder + monthly cost table (below). Punchline: *"a few hundred dollars a
+   month always-on, a few dollars serverless, or a power bill on your own hardware —
+   the model is not the expensive part."*
+10. **Bonus: peek inside the model** (3 min, optional appendix — skip if running long)
+    — one circuitsvis attention pattern + "the fine-tune moved these weights" visual.
+11. **Q&A** (4+ min buffer).
 
 ## Hosting & cost slide (numbers as of July 2026 — re-check before the talk)
 

@@ -35,23 +35,26 @@ and write their outputs to `cache/`, so the notebook works offline and GPU-free.
 
 ## Quick start
 
+Everything runs through one typer CLI, installed as `tokenizer`
+(`alias tokenizer="uv run tokenizer"` if you want it bare):
+
 ```bash
 uv sync
 
 # 1. Generate synthetic data (point at your local model server / DGX endpoint)
-uv run scripts/generate_data.py --base-url http://localhost:8000/v1 --model <model> --n 1500
+uv run tokenizer generate --base-url http://localhost:8000/v1 --model <model> --n 1500
 
 # 2. Filter and split
-uv run scripts/filter_data.py
+uv run tokenizer filter
 
 # 3. Fine-tune (RTX 5090: ~20-40 min)
-uv run scripts/train.py
+uv run tokenizer train
 
 # 4. Compare base vs fine-tuned
-uv run scripts/evaluate.py
+uv run tokenizer evaluate
 
-# 5. (Bonus) Mech-interp artifacts
-uv run scripts/merge_and_interp.py
+# 5. Rebuild the deck theme after editing assets/theme-src.css
+uv run tokenizer build-theme
 
 # Run the presentation
 uv run marimo run notebook.py

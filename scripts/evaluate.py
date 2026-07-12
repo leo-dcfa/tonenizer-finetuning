@@ -7,14 +7,13 @@ presentation notebook. Optionally scores each pair with an LLM judge via an
 OpenAI-compatible endpoint.
 
 Example usage:
-    uv run python scripts/evaluate.py
-    uv run python scripts/evaluate.py --adapter adapters/council-voice --max-new-tokens 400
-    uv run python scripts/evaluate.py --judge-base-url http://localhost:8000/v1 --judge-model qwen3
+    uv run tokenizer evaluate
+    uv run tokenizer evaluate --adapter adapters/council-voice --max-new-tokens 400
+    uv run tokenizer evaluate --judge-base-url http://localhost:8000/v1 --judge-model qwen3
 """
 
 from __future__ import annotations
 
-import argparse
 import gc
 import json
 import re
@@ -22,20 +21,16 @@ from pathlib import Path
 from typing import Any
 
 import torch
+import typer
+from openai import OpenAI
 from peft import PeftModel
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel
 
-# Same system prompt the training data was generated with — responses are only
-# comparable if both models are asked the same way the adapter was trained.
-try:
+try:  # package context (tokenizer CLI)
+    from scripts.generate_data import SYSTEM_PROMPT
+except ModuleNotFoundError:  # run directly: python scripts/evaluate.py
     from generate_data import SYSTEM_PROMPT
-except ImportError:  # fallback if generate_data.py is absent
-    SYSTEM_PROMPT = (
-        "You are Noosa Council's customer service assistant. Reply to resident "
-        "enquiries in the council's warm, plain-English voice."
-    )
-    print("NOTE: scripts/generate_data.py not found — using fallback SYSTEM_PROMPT.")
 
 TEMPERATURE = 0.7
 TOP_P = 0.9
@@ -48,20 +43,6 @@ JUDGE_INSTRUCTIONS = (
     "style) to 5 (exemplary). Respond with JSON only, exactly: "
     '{"base_score": <1-5>, "tuned_score": <1-5>, "rationale": "<one or two sentences>"}'
 )
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--model", default="Qwen/Qwen2.5-3B-Instruct")
-    parser.add_argument("--adapter", default="adapters/council-voice")
-    parser.add_argument("--prompts", default="data/eval_prompts.json")
-    parser.add_argument("--out", default="cache/comparisons.json")
-    parser.add_argument("--max-new-tokens", type=int, default=300)
-    parser.add_argument(
-        "--judge-base-url", default=None, help="OpenAI-compatible endpoint; enables the judge pass"
-    )
-    parser.add_argument("--judge-model", default=None, help="Model name at the judge endpoint")
-    return parser.parse_args()
 
 
 def generate_response(
@@ -132,26 +113,34 @@ def judge_pair(client: Any, judge_model: str, item: dict[str, Any]) -> dict[str,
     }
 
 
-def main() -> None:
-    args = parse_args()
-    prompts: list[dict[str, str]] = json.loads(Path(args.prompts).read_text())
-    print(f"[1/4] Loaded {len(prompts)} eval prompts from {args.prompts}")
+def main(
+    model: str = typer.Option("Qwen/Qwen2.5-3B-Instruct"),
+    adapter: Path = typer.Option(Path("adapters/council-voice")),
+    prompts_path: Path = typer.Option(Path("data/eval_prompts.json"), "--prompts"),
+    out: Path = typer.Option(Path("cache/comparisons.json")),
+    max_new_tokens: int = typer.Option(300),
+    judge_base_url: str | None = typer.Option(
+        None, help="OpenAI-compatible endpoint; enables the judge pass"
+    ),
+    judge_model: str | None = typer.Option(None, help="Model name at the judge endpoint"),
+) -> None:
+    """Compare base-model vs LoRA-tuned responses on the held-out eval prompts."""
+    prompts: list[dict[str, str]] = json.loads(prompts_path.read_text())
+    print(f"[1/4] Loaded {len(prompts)} eval prompts from {prompts_path}")
 
-    print(f"[2/4] Loading base model {args.model} (bf16)")
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model, dtype=torch.bfloat16, device_map="auto"
-    )
-    model.eval()
+    print(f"[2/4] Loading base model {model} (bf16)")
+    tokenizer = AutoTokenizer.from_pretrained(model)
+    hf_model = AutoModelForCausalLM.from_pretrained(model, dtype=torch.bfloat16, device_map="auto")
+    hf_model.eval()
 
     # Base pass first, then attach the adapter to the same weights — one model
     # in VRAM the whole time, and both passes share identical sampling settings.
-    base_responses = generate_all(model, tokenizer, prompts, args.max_new_tokens, "base")
+    base_responses = generate_all(hf_model, tokenizer, prompts, max_new_tokens, "base")
 
-    print(f"[3/4] Attaching adapter from {args.adapter}")
-    model = PeftModel.from_pretrained(model, args.adapter)
-    model.eval()
-    tuned_responses = generate_all(model, tokenizer, prompts, args.max_new_tokens, "tuned")
+    print(f"[3/4] Attaching adapter from {adapter}")
+    hf_model = PeftModel.from_pretrained(hf_model, str(adapter))
+    hf_model.eval()
+    tuned_responses = generate_all(hf_model, tokenizer, prompts, max_new_tokens, "tuned")
 
     comparisons: list[dict[str, Any]] = [
         {
@@ -163,16 +152,14 @@ def main() -> None:
         for item, base, tuned in zip(prompts, base_responses, tuned_responses, strict=True)
     ]
 
-    if args.judge_base_url and args.judge_model:
-        print(f"[4/4] Judge pass via {args.judge_base_url} ({args.judge_model})")
-        del model
+    if judge_base_url and judge_model:
+        print(f"[4/4] Judge pass via {judge_base_url} ({judge_model})")
+        del hf_model
         gc.collect()
         torch.cuda.empty_cache()
-        from openai import OpenAI
-
-        client = OpenAI(base_url=args.judge_base_url, api_key="not-needed")
+        client = OpenAI(base_url=judge_base_url, api_key="not-needed")
         for item in tqdm(comparisons, desc="Judging"):
-            item["judge"] = judge_pair(client, args.judge_model, item)
+            item["judge"] = judge_pair(client, judge_model, item)
         deltas = [
             c["judge"]["tuned_score"] - c["judge"]["base_score"]
             for c in comparisons
@@ -183,11 +170,10 @@ def main() -> None:
     else:
         print("[4/4] Judge pass skipped (set --judge-base-url and --judge-model to enable)")
 
-    out_path = Path(args.out)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(comparisons, indent=2))
-    print(f"Wrote {len(comparisons)} comparisons -> {out_path}")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(comparisons, indent=2))
+    print(f"Wrote {len(comparisons)} comparisons -> {out}")
 
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)

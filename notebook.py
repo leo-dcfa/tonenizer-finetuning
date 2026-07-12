@@ -13,16 +13,63 @@ def _():
     import json
     from pathlib import Path
 
+    import altair as alt
     import marimo as mo
+    import pandas as pd
+    from pygments import highlight as pygments_highlight
+    from pygments.formatters import HtmlFormatter
+    from pygments.lexers import PythonLexer
 
     ASSETS = Path(__file__).parent / "assets"
     CACHE = Path(__file__).parent / "cache"
     LOGO_URI = (ASSETS / "logo_uri.txt").read_text().strip()
-    return CACHE, LOGO_URI, json, mo
+
+    # ── Altair brand theme, registered at import time so every chart cell
+    #    (all downstream of this cell) sees it (validated palette — STYLE.md) ──
+    AZUL_CHART = ["#1E5AA8", "#B08432", "#3B82C4"]
+
+    @alt.theme.register("azul", enable=True)
+    def _azul_theme() -> alt.theme.ThemeConfig:
+        return {
+            "config": {
+                "background": "#FAF8F5",
+                "font": "DM Sans, system-ui, sans-serif",
+                "mark": {"color": AZUL_CHART[0]},
+                "range": {"category": AZUL_CHART},
+                "axis": {
+                    "labelColor": "#4A5568",
+                    "titleColor": "#4A5568",
+                    "labelFontSize": 14,
+                    "titleFontSize": 14,
+                    "grid": False,
+                    "domainColor": "#4A5568",
+                    "tickColor": "#4A5568",
+                },
+                "axisY": {"grid": True, "gridColor": "#4A5568", "gridOpacity": 0.12},
+                "legend": {"labelColor": "#4A5568", "labelFontSize": 14},
+                "view": {"stroke": None},
+                "line": {"strokeWidth": 2, "color": AZUL_CHART[0]},
+                "bar": {"cornerRadiusEnd": 4, "color": AZUL_CHART[0]},
+                "point": {"filled": True, "size": 80, "color": AZUL_CHART[0]},
+            }
+        }
+
+    return (
+        AZUL_CHART,
+        CACHE,
+        HtmlFormatter,
+        LOGO_URI,
+        PythonLexer,
+        alt,
+        json,
+        mo,
+        pd,
+        pygments_highlight,
+    )
 
 
 @app.cell
-def _(LOGO_URI, mo):
+def _(HtmlFormatter, LOGO_URI, PythonLexer, mo, pygments_highlight):
     # ── slide helpers — all deck styling flows through these (see STYLE.md) ──
 
     def _footer(section: str) -> str:
@@ -87,11 +134,7 @@ def _(LOGO_URI, mo):
 
     def code_card(code: str, caption: str = "", highlight: set[int] | None = None) -> str:
         """Code as exhibit: midnight card, brand syntax colors, gold line highlight."""
-        from pygments import highlight as _pyg
-        from pygments.formatters import HtmlFormatter
-        from pygments.lexers import PythonLexer
-
-        html = _pyg(code.strip(), PythonLexer(), HtmlFormatter(nowrap=True))
+        html = pygments_highlight(code.strip(), PythonLexer(), HtmlFormatter(nowrap=True))
         lines = html.rstrip("\n").split("\n")
         if highlight:
             lines = [
@@ -102,42 +145,6 @@ def _(LOGO_URI, mo):
         return f'<div class="az-code-card"><pre>{"\n".join(lines)}</pre></div>{cap}'
 
     return code_card, compare, divider, slide, stat
-
-
-@app.cell
-def _():
-    # ── Altair brand theme (validated palette — STYLE.md) ──
-    import altair as alt
-
-    AZUL_CHART = ["#1E5AA8", "#B08432", "#3B82C4"]
-
-    @alt.theme.register("azul", enable=True)
-    def _azul_theme() -> alt.theme.ThemeConfig:
-        return {
-            "config": {
-                "background": "#FAF8F5",
-                "font": "DM Sans, system-ui, sans-serif",
-                "mark": {"color": AZUL_CHART[0]},
-                "range": {"category": AZUL_CHART},
-                "axis": {
-                    "labelColor": "#4A5568",
-                    "titleColor": "#4A5568",
-                    "labelFontSize": 14,
-                    "titleFontSize": 14,
-                    "grid": False,
-                    "domainColor": "#4A5568",
-                    "tickColor": "#4A5568",
-                },
-                "axisY": {"grid": True, "gridColor": "#4A5568", "gridOpacity": 0.12},
-                "legend": {"labelColor": "#4A5568", "labelFontSize": 14},
-                "view": {"stroke": None},
-                "line": {"strokeWidth": 2, "color": AZUL_CHART[0]},
-                "bar": {"cornerRadiusEnd": 4, "color": AZUL_CHART[0]},
-                "point": {"filled": True, "size": 80, "color": AZUL_CHART[0]},
-            }
-        }
-
-    return (alt,)
 
 
 @app.cell
@@ -192,10 +199,8 @@ model.print_trainable_parameters()
 
 
 @app.cell
-def _(alt):
+def _(alt, pd):
     # ── SLIDE 4 · sample chart slide (theme check) ──
-    import pandas as pd
-
     _demo = pd.DataFrame(
         {
             "step": list(range(0, 200, 10)),

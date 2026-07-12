@@ -40,6 +40,7 @@ def logo_data_uri() -> str:
 
 
 def main() -> None:
+    """Rebuild assets/theme.css from theme-src.css + embedded fonts and logo."""
     src = (ASSETS / "theme-src.css").read_text()
     parts = [
         src,

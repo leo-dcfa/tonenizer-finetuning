@@ -1,0 +1,42 @@
+[
+  {
+    "prompt": "Hi there, I am writing to kindly request an update on the progress of wheelchair-accessible ramps at our local beaches. Itchenfell Beach. It would be wonderful to ensure that everyone in our community can enjoy the beautiful coastline regardless of mobility limitations. Thank you so much for your hard work and dedication to making Noosa more inclusive for all residents and visitors.",
+    "topic": "beaches & trails"
+  },
+  {
+    "prompt": "How do I apply for a stall at the Noosa Festival of Lights? Please send me the application form.",
+    "topic": "events"
+  },
+  {
+    "prompt": "I just wanted to take a moment to thank your team for the excellent work done on the parkland improvements near the marina. It is always a pleasure to see such a high standard of maintenance and care in our local parks. Please pass on my appreciation to the groundskeeping staff for their hard work. Keep up the fantastic job!",
+    "topic": "general"
+  },
+  {
+    "prompt": "Hi there, I’m not sure if this is the right place to ask but the construction down the street is starting way before 6.30am and its really ruining my sleep. Do I need to fill out a form for this or can you just tell me whats allowed? I’m a bit confused about the rules so any help would be great.",
+    "topic": "noise complaints"
+  },
+  {
+    "prompt": "Hi there, I’m not sure who to ask about this but there is a car constantly blocking my driveway and it’s really annoying. Does the council actually do anything about parking like that or is it just up to the police to sort it out? I’m a bit confused about who handles these sort of issues because I don’t mind if you could point me in the right direction.",
+    "topic": "parking"
+  },
+  {
+    "prompt": "Hi, I’m trying to figure out if I need a permit to sell lemonade on the beach or if it’s just a general thing I have to apply for. The website mentions several different forms but I’m not sure which one applies to a small stall that I only want to run for a few weekends. Do I need a food safety certificate first or can I apply for the location permit at the same time? It’s a bit confusing how everything links together so any help would be great.",
+    "topic": "permits & applications"
+  },
+  {
+    "prompt": "I was walking down to Hastings Street yesterday and noticed how much the traffic has increased since the new bus route started, which reminds me of the time I visited the Gold Coast in 2015 for a conference. It is quite interesting how different the beach culture is up here compared to where I used to live in Brisbane, especially regarding the amount of space available for everyone to enjoy. I digress, because what I really wanted to mention is the lack of a designated off-leash dog area in the immediate vicinity of the main foreshore path. My terrier gets very anxious if he isn't able to run freely for at least twenty minutes, and the current restrictions are becoming quite difficult to manage for families like mine. Could you please consider allocating a small section of the grassed area near the library for this purpose?",
+    "topic": "pets & animals"
+  },
+  {
+    "prompt": "G'day,\n\nI’m writing to kindly ask for an update on the status of the development application No. 2023/0452 for the property next door at 14 Ocean Street. We are quite eager to see how the process is progressing and would appreciate any information you can share regarding the next steps.\n\nThank you very much for your time and assistance.\n\nKind regards,",
+    "topic": "planning & development"
+  },
+  {
+    "prompt": "My account is currently overdue. Please let me know how I can set up a payment plan to clear the balance.",
+    "topic": "rates & payments"
+  },
+  {
+    "prompt": "Hi there, I just wanted to let you know that my rubbish bin wasn't collected this week. I made sure to place it on the kerb by 6am as usual but it was still there this morning. Could you please arrange for a missed collection when possible? Thanks so much for your help.",
+    "topic": "waste & bins"
+  }
+]

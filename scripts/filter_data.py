@@ -7,23 +7,25 @@ the training set. A kept/dropped report table is printed at the end — that tab
 is itself a slide in the talk.
 
 Examples:
-    uv run python scripts/filter_data.py
-    uv run python scripts/filter_data.py --in data/raw.jsonl --n-eval 10
-    uv run python scripts/filter_data.py --self-test
+    uv run tokenizer filter
+    uv run tokenizer filter --in data/raw.jsonl --n-eval 10
+    uv run tokenizer filter --self-test
 """
 
 from __future__ import annotations
 
-import argparse
 import json
 import random
 import re
-import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from generate_data import CONTACT_LINE, GREETING, SIGN_OFF  # noqa: E402
+import typer
+
+try:  # package context (tokenizer CLI)
+    from scripts.generate_data import CONTACT_LINE, GREETING, SIGN_OFF
+except ModuleNotFoundError:  # run directly: python scripts/filter_data.py
+    from generate_data import CONTACT_LINE, GREETING, SIGN_OFF
 
 REFUSAL_PATTERNS = (
     "as an ai",
@@ -210,12 +212,13 @@ def print_report(counts: Counter[str]) -> None:
     print(f"{'total':<24}{total:>8}")
 
 
-def run(args: argparse.Namespace) -> None:
-    lines = Path(args.in_path).read_text(encoding="utf-8").splitlines()
-    kept, counts = filter_lines(lines, args.min_chars, args.max_chars)
-    train, held_out = stratified_split(kept, args.n_eval)
+def run(
+    in_path: Path, out: Path, eval_out: Path, n_eval: int, min_chars: int, max_chars: int
+) -> None:
+    lines = in_path.read_text(encoding="utf-8").splitlines()
+    kept, counts = filter_lines(lines, min_chars, max_chars)
+    train, held_out = stratified_split(kept, n_eval)
 
-    out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8") as f:
         for record in train:
@@ -225,35 +228,29 @@ def run(args: argparse.Namespace) -> None:
         {"prompt": record["messages"][1]["content"], "topic": record["topic"]}
         for record in held_out
     ]
-    Path(args.eval_out).write_text(
+    eval_out.write_text(
         json.dumps(eval_prompts, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
 
     print_report(counts)
-    print(f"\n{len(train)} train examples -> {args.out}")
-    print(f"{len(eval_prompts)} eval prompts  -> {args.eval_out}")
+    print(f"\n{len(train)} train examples -> {out}")
+    print(f"{len(eval_prompts)} eval prompts  -> {eval_out}")
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Filter raw synthetic data into train + eval sets."
-    )
-    parser.add_argument("--in", dest="in_path", default="data/raw.jsonl")
-    parser.add_argument("--out", default="data/train.jsonl")
-    parser.add_argument("--eval-out", default="data/eval_prompts.json")
-    parser.add_argument(
-        "--n-eval", type=int, default=10, help="held-out eval prompts, stratified across topics"
-    )
-    parser.add_argument(
-        "--min-chars", type=int, default=20, help="minimum length for user and assistant turns"
-    )
-    parser.add_argument(
-        "--max-chars", type=int, default=1500, help="maximum length for user and assistant turns"
-    )
-    parser.add_argument(
-        "--self-test", action="store_true", help="run the built-in check-by-check test and exit"
-    )
-    return parser.parse_args()
+def main(
+    in_path: Path = typer.Option(Path("data/raw.jsonl"), "--in"),
+    out: Path = typer.Option(Path("data/train.jsonl")),
+    eval_out: Path = typer.Option(Path("data/eval_prompts.json")),
+    n_eval: int = typer.Option(10, help="held-out eval prompts, stratified across topics"),
+    min_chars: int = typer.Option(20, help="minimum length for user and assistant turns"),
+    max_chars: int = typer.Option(1500, help="maximum length for user and assistant turns"),
+    self_test: bool = typer.Option(False, help="run the built-in check-by-check test and exit"),
+) -> None:
+    """Filter raw synthetic data into train + eval sets."""
+    if self_test:
+        run_self_test()
+        return
+    run(in_path, out, eval_out, n_eval, min_chars, max_chars)
 
 
 # --- Self-test -------------------------------------------------------------------
@@ -276,7 +273,7 @@ def _record(user: str, assistant: str, topic: str) -> str:
     )
 
 
-def self_test() -> None:
+def run_self_test() -> None:
     """One synthetic record per drop reason, plus good ones; assert the counts."""
     good_answer = (
         f"{GREETING} We can sort out your bin.\n\n"
@@ -335,8 +332,4 @@ def self_test() -> None:
 
 
 if __name__ == "__main__":
-    arguments = parse_args()
-    if arguments.self_test:
-        self_test()
-    else:
-        run(arguments)
+    typer.run(main)

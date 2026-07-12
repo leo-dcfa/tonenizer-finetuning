@@ -6,15 +6,14 @@ appended to a JSONL file in ChatML format, so the script is resumable: re-runnin
 only generates whatever is missing to reach --n.
 
 Examples:
-    uv run python scripts/generate_data.py --model qwen3.6-27b --n 1500
-    uv run python scripts/generate_data.py --model deepseek-v3 \\
+    uv run tokenizer generate --model qwen3.6-27b --n 1500
+    uv run tokenizer generate --model deepseek-v3 \\
         --base-url http://dgx:8000/v1 --concurrency 16
-    uv run python scripts/generate_data.py --model x --dry-run   # show stage prompts
+    uv run tokenizer generate --model x --dry-run   # show stage prompts
 """
 
 from __future__ import annotations
 
-import argparse
 import asyncio
 import json
 import math
@@ -23,6 +22,7 @@ from dataclasses import dataclass
 from itertools import cycle
 from pathlib import Path
 
+import typer
 from openai import AsyncOpenAI
 
 # --- The council voice ----------------------------------------------------------
@@ -198,6 +198,12 @@ def plan_tasks(n: int, rng: random.Random) -> list[Task]:
     return tasks
 
 
+# Reasoning models (Qwen3.x, DeepSeek) burn the token budget on a hidden
+# "thinking" pass and return empty content at small max_tokens. This template
+# kwarg turns thinking off; endpoints whose templates lack the variable ignore it.
+NO_THINK_BODY = {"chat_template_kwargs": {"enable_thinking": False}}
+
+
 async def chat(
     client: AsyncOpenAI,
     model: str,
@@ -205,6 +211,7 @@ async def chat(
     user: str,
     temperature: float,
     max_tokens: int,
+    thinking: bool = False,
 ) -> str | None:
     """One chat completion with retry/backoff. Returns None after MAX_ATTEMPTS failures."""
     for attempt in range(1, MAX_ATTEMPTS + 1):
@@ -217,6 +224,7 @@ async def chat(
                 ],
                 temperature=temperature,
                 max_tokens=max_tokens,
+                extra_body=None if thinking else NO_THINK_BODY,
             )
             content = response.choices[0].message.content
             if content and content.strip():
@@ -233,6 +241,7 @@ async def generate_example(
     task: Task,
     temperature: float,
     semaphore: asyncio.Semaphore,
+    thinking: bool = False,
 ) -> dict | None:
     """Run both stages for one task. Returns a ChatML record, or None if a stage failed."""
     async with semaphore:
@@ -242,7 +251,8 @@ async def generate_example(
             ENQUIRY_SYSTEM,
             build_enquiry_prompt(task),
             temperature=temperature,
-            max_tokens=250,
+            max_tokens=2000 if thinking else 250,
+            thinking=thinking,
         )
         if enquiry is None:
             return None
@@ -252,7 +262,8 @@ async def generate_example(
             STYLE_CARD,
             enquiry,
             temperature=ANSWER_TEMPERATURE,
-            max_tokens=400,
+            max_tokens=2500 if thinking else 400,
+            thinking=thinking,
         )
         if answer is None:
             return None
@@ -274,21 +285,29 @@ def count_existing(path: Path) -> int:
         return sum(1 for line in f if line.strip())
 
 
-async def run(args: argparse.Namespace) -> None:
-    out = Path(args.out)
+async def run(
+    model: str,
+    base_url: str,
+    n: int,
+    out: Path,
+    batch_size: int,
+    temperature: float,
+    concurrency: int,
+    api_key: str,
+    thinking: bool,
+) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
 
     existing = count_existing(out)
-    remaining = args.n - existing
+    remaining = n - existing
     if remaining <= 0:
-        print(f"{out} already has {existing} examples (target {args.n}); nothing to do.")
+        print(f"{out} already has {existing} examples (target {n}); nothing to do.")
         return
     print(f"{existing} existing examples in {out}; generating {remaining} more.")
 
-    client = AsyncOpenAI(base_url=args.base_url, api_key=args.api_key)
-    semaphore = asyncio.Semaphore(args.concurrency)
+    client = AsyncOpenAI(base_url=base_url, api_key=api_key)
+    semaphore = asyncio.Semaphore(concurrency)
     tasks = plan_tasks(remaining, random.Random())
-    batch_size = args.seed_topics_per_batch
     n_batches = math.ceil(len(tasks) / batch_size)
 
     written = skipped = 0
@@ -297,7 +316,7 @@ async def run(args: argparse.Namespace) -> None:
             batch = tasks[b * batch_size : (b + 1) * batch_size]
             results = await asyncio.gather(
                 *(
-                    generate_example(client, args.model, task, args.temperature, semaphore)
+                    generate_example(client, model, task, temperature, semaphore, thinking)
                     for task in batch
                 )
             )
@@ -308,16 +327,14 @@ async def run(args: argparse.Namespace) -> None:
                     f.write(json.dumps(record, ensure_ascii=False) + "\n")
                     written += 1
             f.flush()
-            print(
-                f"batch {b + 1}/{n_batches}: {existing + written}/{args.n} total, {skipped} skipped"
-            )
+            print(f"batch {b + 1}/{n_batches}: {existing + written}/{n} total, {skipped} skipped")
 
     print(f"Done: wrote {written} examples ({skipped} skipped after retries).")
     if skipped:
         print("Re-run the same command to top up to the target count.")
 
 
-def dry_run() -> None:
+def print_stage_prompts() -> None:
     """Print the two stage prompts for one example task, then exit."""
     task = Task(
         topic="waste & bins",
@@ -335,42 +352,32 @@ def dry_run() -> None:
     print("<the enquiry text produced by stage 1>")
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Generate synthetic Noosa Council enquiry/answer pairs."
+def main(
+    model: str = typer.Option(..., help="model name at the endpoint"),
+    base_url: str = typer.Option(
+        "http://localhost:8000/v1", help="OpenAI-compatible endpoint (vLLM, Ollama, ...)"
+    ),
+    n: int = typer.Option(1500, help="total examples wanted in --out (resumes if some exist)"),
+    out: Path = typer.Option(Path("data/raw.jsonl")),
+    batch_size: int = typer.Option(20, help="examples generated per progress batch"),
+    temperature: float = typer.Option(0.9, help="sampling temperature for the enquiry stage"),
+    concurrency: int = typer.Option(8, help="max in-flight requests"),
+    api_key: str = typer.Option("none", help="API key; local endpoints usually ignore it"),
+    thinking: bool = typer.Option(
+        False,
+        "--thinking/--no-thinking",
+        help="let reasoning models think (slower; raises max_tokens to compensate)",
+    ),
+    dry_run: bool = typer.Option(False, help="print the two stage prompts for one topic and exit"),
+) -> None:
+    """Generate synthetic Noosa Council enquiry/answer pairs."""
+    if dry_run:
+        print_stage_prompts()
+        return
+    asyncio.run(
+        run(model, base_url, n, out, batch_size, temperature, concurrency, api_key, thinking)
     )
-    parser.add_argument(
-        "--base-url",
-        default="http://localhost:8000/v1",
-        help="OpenAI-compatible endpoint (vLLM, Ollama, ...)",
-    )
-    parser.add_argument("--model", required=True, help="model name at the endpoint")
-    parser.add_argument(
-        "--n", type=int, default=1500, help="total examples wanted in --out (resumes if some exist)"
-    )
-    parser.add_argument("--out", default="data/raw.jsonl")
-    parser.add_argument(
-        "--seed-topics-per-batch",
-        type=int,
-        default=20,
-        help="examples generated per progress batch",
-    )
-    parser.add_argument(
-        "--temperature", type=float, default=0.9, help="sampling temperature for the enquiry stage"
-    )
-    parser.add_argument("--concurrency", type=int, default=8, help="max in-flight requests")
-    parser.add_argument(
-        "--api-key", default="none", help="API key; local endpoints usually ignore it"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="print the two stage prompts for one topic and exit"
-    )
-    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    arguments = parse_args()
-    if arguments.dry_run:
-        dry_run()
-    else:
-        asyncio.run(run(arguments))
+    typer.run(main)

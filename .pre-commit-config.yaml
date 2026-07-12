@@ -1,0 +1,15 @@
+# Uses the project's own pinned ruff via uv — no separate hook env to download,
+# works offline, and can never drift from `uv run ruff` behaviour.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix
+        language: system
+        types_or: [python, pyi]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types_or: [python, pyi]

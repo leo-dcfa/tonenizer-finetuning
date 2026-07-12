@@ -1,0 +1,42 @@
+[
+  {
+    "prompt": "I’ve lived here since the seventies and remember when we just walked down to the sand from the shops. Now I find it harder to get about with my bad knees so I was wondering if there are any plans for better wheelchair access on the beach paths? It’s a bit frustrating when the ramps seem to lead nowhere useful. Just thought I’d drop a line to see if anything is happening.",
+    "topic": "beaches & trails"
+  },
+  {
+    "prompt": "Hi there, I was wondering if you could provide some details on the road closures for the upcoming Noosa Arts Festival? I’d like to plan my route around the event but haven’t been able to find the specific street closure information online. Please let me know if there is a map or list available for the dates. Thank you so much for your help!",
+    "topic": "events"
+  },
+  {
+    "prompt": "Hi there, i'm trying to work out when the library closes on a saturday but the first of the month because the website is a bit confusing. do you have different hours for the public toilets too or is that 24/7? i'm not sure if i need to book anything in advance to just go in and read a paper.",
+    "topic": "general"
+  },
+  {
+    "prompt": "Hi, I was wondering if there are rules about construction starting early because the jackhammer started at 6am this morning and it’s really loud. Is there a form I need to fill out or should I just call someone? I’m not sure if this is even a council thing or if I need to talk to the builders directly. Sorry if this is the wrong place to ask, I am just really annoyed and can’t sleep.",
+    "topic": "noise complaints"
+  },
+  {
+    "prompt": "Hi, I just moved to Noosa from interstate and I’m a bit lost with the local parking rules. I received a fine for my car on Hastings St but I thought I was in a free bay since there was no sign visible signage nearby. Could someone please explain how the zones work here as I didn’t know what I was doing wrong? I’d really appreciate some clarity before I pay the penalty.",
+    "topic": "parking"
+  },
+  {
+    "prompt": "I submitted my application for a temporary road closure permit three weeks ago and have received nothing but automated responses. It is completely unacceptable that you cannot process a simple street party request in a timely manner. My neighbours are annoyed and I am losing patience with your incompetence. Fix this backlog immediately or I will be contacting the ombudsman.",
+    "topic": "permits & applications"
+  },
+  {
+    "prompt": "Hello, I’m writing to report a small snake in my backyard garden and would appreciate advice on the best way to handle the situation safely. Could you please let me know if your council has a wildlife officer or recommended removal service I can contact? I’d be grateful for any guidance you can provide. Thank you for your help.",
+    "topic": "pets & animals"
+  },
+  {
+    "prompt": "I’ve lived in Noosa for over forty years and remember when this street was just a quiet row of gum trees and small cottages, not a construction site. I am writing to formally object to the proposed three-story complex on the corner, as it will block the sunlight that has warmed my garden for decades and destroy the peaceful character of our neighbourhood. It feels like developers care more about profit than the heritage and community spirit we have worked so hard to preserve. I urge the council to reconsider this approval and protect what makes our town so special.",
+    "topic": "planning & development"
+  },
+  {
+    "prompt": "G’day, I’ve been paying my rates right through since the 70s when the council was just a small office on Sunshine Beach, so I’m hoping you can help me set up a payment plan for the overdue balance this quarter. Things have certainly changed since we first built our home here, and the cost of living has crept up a bit, so splitting the payment would take the pressure off my pension. Please let me know what forms I need to fill out or if I can just pop into the customer service desk at the Civic Centre to sort it out face-to-face. Cheers.",
+    "topic": "rates & payments"
+  },
+  {
+    "prompt": "My bins were not collected last week. Please arrange for them to be picked up.",
+    "topic": "waste & bins"
+  }
+]
