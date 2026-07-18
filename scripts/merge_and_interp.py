@@ -27,10 +27,7 @@ from peft import PeftModel
 from transformer_lens import HookedTransformer
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-try:  # package context (tokenizer CLI)
-    from scripts.generate_data import SYSTEM_PROMPT
-except ModuleNotFoundError:  # run directly: python scripts/merge_and_interp.py
-    from generate_data import SYSTEM_PROMPT
+from scripts.generate_data import SYSTEM_PROMPT
 
 INTERP_DIR = Path("cache/interp")
 

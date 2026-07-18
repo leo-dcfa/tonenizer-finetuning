@@ -22,10 +22,7 @@ from pathlib import Path
 
 import typer
 
-try:  # package context (tokenizer CLI)
-    from scripts.generate_data import CONTACT_LINE, GREETING, SIGN_OFF
-except ModuleNotFoundError:  # run directly: python scripts/filter_data.py
-    from generate_data import CONTACT_LINE, GREETING, SIGN_OFF
+from scripts.generate_data import CONTACT_LINE, GREETING, SIGN_OFF
 
 REFUSAL_PATTERNS = (
     "as an ai",

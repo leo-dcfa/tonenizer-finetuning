@@ -27,10 +27,7 @@ from peft import PeftModel
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel
 
-try:  # package context (tokenizer CLI)
-    from scripts.generate_data import SYSTEM_PROMPT
-except ModuleNotFoundError:  # run directly: python scripts/evaluate.py
-    from generate_data import SYSTEM_PROMPT
+from scripts.generate_data import SYSTEM_PROMPT
 
 TEMPERATURE = 0.7
 TOP_P = 0.9
