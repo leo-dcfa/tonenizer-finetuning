@@ -126,7 +126,7 @@ em.az-gold, .az-gold { color: var(--gold); font-style: inherit; }
 .az-code-card .c, .az-code-card .c1, .az-code-card .cm { color: rgba(74, 85, 104, 0.9); }
 .az-code-card .n, .az-code-card .nf, .az-code-card .nn { color: var(--cream); }
 .az-code-card .mi, .az-code-card .mf { color: var(--azul-light); }
-.az-caption { font-size: var(--text-caption); color: var(--slate); margin-top: 0.75rem; }
+.az-caption, .az-slide p.az-caption { font-size: var(--text-caption); color: var(--slate); margin-top: 0.75rem; }
 
 /* ── pre/post comparison ── */
 .az-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem; }

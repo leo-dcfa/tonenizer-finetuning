@@ -10,6 +10,7 @@ app = marimo.App(
 
 @app.cell
 def _():
+    import base64
     import contextlib
     import functools
     import html
@@ -59,6 +60,7 @@ def _():
         }
 
     return (
+        ASSETS,
         AZUL_CHART,
         CACHE,
         DATA,
@@ -67,6 +69,7 @@ def _():
         LOGO_URI,
         PythonLexer,
         alt,
+        base64,
         contextlib,
         functools,
         html,
@@ -353,7 +356,7 @@ def _(mo, slide, stat):
           Time to ride the <em class="az-gold">AI wave</em>.
         </p>
         """,
-        section="Fine-tuning 101 · Noosa Council",
+        section="Fine-tuning 101 · Tokenizer - Peregian Digital Hub",
     )
     return
 
@@ -406,6 +409,57 @@ def _(slide):
         <p style="margin-top: 1.5rem;">Skip it when the task changes weekly, when facts
         matter more than form, or when you handle a few requests a day — a longer
         prompt is cheaper than a training pipeline.</p>
+        """,
+        section="01 · What it means",
+    )
+    return
+
+
+@app.cell
+def _(ASSETS, base64):
+    # ── shared: embed the DeepLearning.AI × AMD pasta pages as data URIs ──
+    def img_uri(name: str) -> str:
+        data = base64.b64encode((ASSETS / name).read_bytes()).decode()
+        return f"data:image/png;base64,{data}"
+
+    return (img_uri,)
+
+
+@app.cell
+def _(img_uri, slide):
+    # ══ 3b · SFT — the pasta metaphor, part 1 (DeepLearning.AI × AMD) ══
+    slide(
+        "Two ways to teach: copy the steps…",
+        f"""
+        <span class="az-chip az-chip--tuned">SFT — WHAT WE DID TODAY</span>
+        <img src="{img_uri("sft-pasta.png")}" alt="SFT: watch grandma cook, mimic every step"
+             style="width: 100%; margin-top: 0.75rem; border-radius: 12px;
+                    border: 1px solid rgba(74,85,104,0.25);"/>
+        <p style="margin-top: 1rem;"><strong>Supervised fine-tuning</strong>: you can
+        <em>show</em> good behaviour, so the model copies it step by step — perfect for
+        voice, format, and consistency.</p>
+        <p class="az-caption">Illustration: DeepLearning.AI &amp; AMD, “Post-training of LLMs”.</p>
+        """,
+        section="01 · What it means",
+        sub="Fine-tuning has two flavours — today is this one",
+    )
+    return
+
+
+@app.cell
+def _(img_uri, slide):
+    # ══ 3c · RL — the pasta metaphor, part 2 (DeepLearning.AI × AMD) ══
+    slide(
+        "…or grade the dish",
+        f"""
+        <span class="az-chip az-chip--base">RL — HOW REASONING MODELS ARE MADE</span>
+        <img src="{img_uri("rl-pasta.png")}" alt="RL: only the final dish is graded"
+             style="width: 100%; margin-top: 0.75rem; border-radius: 12px;
+                    border: 1px solid rgba(74,85,104,0.25);"/>
+        <p style="margin-top: 1rem;"><strong>Reinforcement learning</strong>: you can't
+        show the steps, but you can <em>grade the result</em> — the model finds its own
+        way there. That's how models learn to reason. (The follow-up talk.)</p>
+        <p class="az-caption">Illustration: DeepLearning.AI &amp; AMD, “Post-training of LLMs”.</p>
         """,
         section="01 · What it means",
     )
@@ -826,7 +880,7 @@ def _(slide):
         </p>
         <p class="az-caption" style="margin-top: 2rem;">Leo Alves · azl.au · code + slides: this repo</p>
         """,
-        section="Fine-tuning 101 · Noosa Council",
+        section="Fine-tuning 101 · Tokenizer - Peregian Digital Hub",
     )
     return
 
