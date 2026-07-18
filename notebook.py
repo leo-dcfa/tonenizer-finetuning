@@ -137,35 +137,36 @@ def _(HtmlFormatter, JsonLexer, LOGO_URI, PythonLexer, html, mo, pygments_highli
     def esc(text: str) -> str:
         return html.escape(text)
 
-    def _footer(section: str) -> str:
+    def _footer(section: str = "") -> str:
         return f"""
         <div class="az-footer">
           <span>{section}</span>
           <span class="az-footer-brand"><img src="{LOGO_URI}" alt="Azul Labs"/> azl.au</span>
         </div>"""
 
-    def slide(title: str, body_html: str, section: str = "", sub: str = ""):
-        """Standard content slide: Fraunces title, gold rule, body, footer."""
+    def slide(title: str, body_html: str, section: str = "", sub: str = "", wide: bool = False):
+        """Standard content slide, azl.au pattern: eyebrow label, Fraunces title, body."""
+        label_html = f'<p class="az-label">{section}</p>' if section else ""
         sub_html = f'<p class="az-sub">{sub}</p>' if sub else ""
+        body_class = "az-body az-body--wide" if wide else "az-body"
         return mo.Html(f"""
         <div class="az-slide">
+          {label_html}
           <h1 class="az-title">{title}</h1>
-          <hr class="az-rule"/>
           {sub_html}
-          <div class="az-body">{body_html}</div>
-          {_footer(section)}
+          <div class="{body_class}">{body_html}</div>
+          {_footer()}
         </div>""")
 
     def divider(num: int, title: str):
-        """Inverted midnight section divider with ghost numeral."""
+        """Dark section divider — azl.au's blue-900 treatment with ghost numeral."""
         return mo.Html(f"""
         <div class="az-slide az-slide--dark">
           <div style="margin: auto 0;">
             <h1 class="az-title" style="font-size: 4rem;">{title}</h1>
-            <hr class="az-rule"/>
           </div>
           <div class="az-ghost">{num:02d}</div>
-          {_footer("")}
+          {_footer()}
         </div>""")
 
     def stat(value: str, label: str) -> str:
@@ -215,17 +216,18 @@ def _(HtmlFormatter, JsonLexer, LOGO_URI, PythonLexer, html, mo, pygments_highli
           </div>
         </div>"""
 
-    def frag_header(title: str) -> object:
-        """Title + gold rule fragment for slides composed with mo.vstack."""
+    def frag_header(title: str, section: str = "") -> object:
+        """Eyebrow + title fragment for slides composed with mo.vstack."""
+        label = f'<p class="az-label">{section}</p>' if section else ""
         return mo.Html(
-            f'<div style="padding: 2rem 4rem 0 4rem; background: var(--cream);">'
-            f'<h1 class="az-title">{title}</h1><hr class="az-rule"/></div>'
+            f'<div style="padding: 2rem 4rem 0.5rem 4rem; background: var(--cream);">'
+            f'{label}<h1 class="az-title">{title}</h1></div>'
         )
 
     def frag_caption(text: str) -> object:
         return mo.Html(f'<p class="az-caption" style="padding: 0 4rem;">{text}</p>')
 
-    def frag_footer(section: str) -> object:
+    def frag_footer(section: str = "") -> object:
         """Static footer for vstack slides (the absolute one needs an az-slide parent)."""
         return mo.Html(
             f'<div style="margin: 2rem 4rem 0 4rem; padding-top: 0.75rem; '
@@ -240,11 +242,11 @@ def _(HtmlFormatter, JsonLexer, LOGO_URI, PythonLexer, html, mo, pygments_highli
         """A slide whose body is a live marimo element (chart, widget stack)."""
         return mo.vstack(
             [
-                frag_header(title),
+                frag_header(title, section),
                 mo.Html('<div style="padding: 0 4rem;"></div>'),
                 element,
                 frag_caption(caption),
-                frag_footer(section),
+                frag_footer(),
             ]
         ).style({"background": "var(--cream)", "padding-bottom": "2rem"})
 
@@ -340,21 +342,17 @@ def _(COMPARISONS, mo):
 
 
 @app.cell
-def _(mo, slide, stat):
+def _(slide):
     # ══ 1 · Title / About me ══
     slide(
         "Leo Alves",
-        f"""
-        <p class="az-sub">Azul Labs Pty Ltd · engineer &amp; indie researcher</p>
-        <p>AI consulting, Claude API integration, and Python backends —
-        on the Sunshine Coast.</p>
-        <div class="az-stats">
-          {stat("15+", "years engineering")}
-          {stat("50+", "projects delivered")}
+        """
+        <p class="az-sub">engineer &amp; (accidental) indie researcher</p>
+        <div style="font-family: var(--font-display); font-weight: 500; font-size: 2.5rem;
+                    letter-spacing: -0.02em; color: var(--midnight); margin: 2.5rem 0 1.5rem 0;">
+          <span style="color: var(--blue-700);">Azul</span> Labs
         </div>
-        <p class="az-italic" style="font-size: 1.75rem; margin-top: 3rem;">
-          Time to ride the <em class="az-gold">AI wave</em>.
-        </p>
+        <p>AI and Salesforce consulting.</p>
         """,
         section="Fine-tuning 101 · Tokenizer - Peregian Digital Hub",
     )
@@ -363,7 +361,7 @@ def _(mo, slide, stat):
 
 @app.cell
 def _(divider):
-    divider(1, "What does “fine-tuning” actually mean?")
+    divider(1, "Fine tuning")
     return
 
 
@@ -377,40 +375,114 @@ def _(slide):
         knows a bit of everything, but answers like a generic assistant.</p>
         <p>Fine-tuning is <strong>on-the-job training</strong>. You show it a few
         hundred examples of how <em>your</em> organisation responds, and it absorbs
-        the <span class="az-gold">behaviour</span>: the tone, the structure, the
+        the <span class="az-em">behaviour</span>: the tone, the structure, the
         sign-off, the judgement calls.</p>
         <p style="margin-top: 2rem;">What it does <strong>not</strong> do is teach new facts.
         Facts change — bin days, fees, opening hours. Those live in a lookup system
         the model reads at answer time (that pattern is called RAG). <br/>
         <strong>Rule of thumb: behaviour → fine-tune · knowledge → look it up.</strong></p>
         """,
-        section="01 · What it means",
+        section="01 · Fine-tuning Basics",
     )
     return
 
 
 @app.cell
 def _(slide):
-    # ══ 3 · When is it worth doing? ══
     slide(
         "When is it worth it?",
         """
-        <p>Climb this ladder — stop at the first rung that works:</p>
+        <p>It's usually the last option.</p>
+        <br/>
         <ul>
-          <li><strong>1. Just ask better.</strong> A clear prompt with instructions.
-              Solves most things.</li>
-          <li><strong>2. Show examples in the prompt.</strong> Paste 3 model answers
-              in. Works, but you pay for those tokens on every single request, and
-              the voice still drifts.</li>
-          <li><strong>3. Fine-tune</strong> when you need the <em>same behaviour every
-              time</em>: a support assistant that always sounds like you, documents in
-              a house format, structured output that never breaks.</li>
+          <li>Better Prompting.</li>
+          <li>Grounding techniques.</li>
+          <li>Fine-tune.</li>
         </ul>
-        <p style="margin-top: 1.5rem;">Skip it when the task changes weekly, when facts
-        matter more than form, or when you handle a few requests a day — a longer
-        prompt is cheaper than a training pipeline.</p>
         """,
-        section="01 · What it means",
+        section="01 · Finetuning Basics",
+    )
+    return
+
+
+@app.cell
+def _(exhibit, slide):
+    # ══ Option 1 · Better prompting ══
+    _bad = "You are a helpful assistant. Answer the resident's question."
+    _good = """You are Noosa Council's customer service assistant.
+
+- Open with: "Thanks for reaching out to Noosa Council."
+- Plain English, short paragraphs. If there are steps, number them.
+- Warm and empathetic — residents are often frustrated; acknowledge it.
+- NEVER invent fees, dates or opening hours. Point to noosa.qld.gov.au
+  or (07) 5329 6500 instead.
+- Safety-related matters: give the right hotline before anything else.
+- Keep replies under 180 words."""
+    slide(
+        "Option 1: Ask better",
+        f"""
+        <div style="display: grid; grid-template-columns: 1fr 1.4fr; gap: 1.5rem;">
+          <div>
+            <span class="az-chip az-chip--base">BAD PROMPT</span>
+            {exhibit(_bad)}
+          </div>
+          <div>
+            <span class="az-chip az-chip--tuned">GOOD PROMPT</span>
+            {exhibit(_good)}
+          </div>
+        </div>
+        <p style="margin-top: 1.25rem;">The good prompt gets you most of the way, for free.
+        Its weaknesses: you pay for those tokens on <strong>every request*</strong>, and on
+        long conversations the model drifts away from it.</p>
+        """,
+        section="01 · Finetuning Basics",
+        wide=True,
+    )
+    return
+
+
+@app.cell
+def _(ASSETS, code_card, slide):
+    # ══ Option 2 · Grounding: give the model tools instead of memories ══
+    # snippets live in assets/snippets/ — marimo's serializer mangles
+    # multi-line string literals inside cells, files are safe
+    _bus = (ASSETS / "snippets" / "bus_tool.py").read_text()
+    _dv = (ASSETS / "snippets" / "dv_tool.py").read_text()
+    slide(
+        "Option 2: ground it",
+        f"""
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+          <div style="min-width: 0;">{code_card(_bus, caption="Live facts: the model never memorises a timetable — it asks the source.")}</div>
+          <div style="min-width: 0;">{code_card(_dv, caption="Safety-critical routing is code, not model vibes — the hotline can't be hallucinated.", highlight={9, 10})}</div>
+        </div>
+        <p style="margin-top: 1rem;">Answer is deterministic, model decides when to invoke tool.</p>
+        """,
+        section="01 · Finetuning Basics",
+        wide=True,
+    )
+    return
+
+
+@app.cell
+def _(COMPARISONS, cards, slide):
+    # ══ Option 3 · Fine-tuning: same question, before and after ══
+    def _trim(text: str, limit: int = 340) -> str:
+        return text if len(text) <= limit else text[: text.rfind(" ", 0, limit)] + " …"
+
+    _c = next((c for c in COMPARISONS if c["topic"] == "noise complaints"), COMPARISONS[0])
+    slide(
+        "Option 3: fine-tune — same question, before and after",
+        cards(_c["prompt"], _trim(_c["base_response"]), _trim(_c["tuned_response"]))
+        + """
+        <p style="margin-top: 1.25rem;">Same model, same question — the behaviour is now
+        <strong>in the weights</strong>: no prompt tokens spent on style, no drift, the
+        voice survives any conversation length.</p>
+        <p style="margin-top: 0.75rem;">And often <strong>cheaper</strong>: for a narrow
+        task, a fine-tuned small model can match a much larger general one — this 3B
+        assistant runs for a fraction of what frontier-model API calls cost per reply.</p>
+        """,
+        section="01 · Finetuning Basics",
+        wide=True,
     )
     return
 
@@ -431,7 +503,7 @@ def _(img_uri, slide):
     slide(
         "Two ways to teach: copy the steps…",
         f"""
-        <span class="az-chip az-chip--tuned">SFT — WHAT WE DID TODAY</span>
+        <span class="az-chip az-chip--tuned">Fine-tuning</span>
         <img src="{img_uri("sft-pasta.png")}" alt="SFT: watch grandma cook, mimic every step"
              style="width: 100%; margin-top: 0.75rem; border-radius: 12px;
                     border: 1px solid rgba(74,85,104,0.25);"/>
@@ -440,7 +512,7 @@ def _(img_uri, slide):
         voice, format, and consistency.</p>
         <p class="az-caption">Illustration: DeepLearning.AI &amp; AMD, “Post-training of LLMs”.</p>
         """,
-        section="01 · What it means",
+        section="01 · Finetuning Basics",
         sub="Fine-tuning has two flavours — today is this one",
     )
     return
@@ -461,7 +533,7 @@ def _(img_uri, slide):
         way there. That's how models learn to reason. (The follow-up talk.)</p>
         <p class="az-caption">Illustration: DeepLearning.AI &amp; AMD, “Post-training of LLMs”.</p>
         """,
-        section="01 · What it means",
+        section="01 · Finetuning Basics",
     )
     return
 
@@ -556,7 +628,7 @@ def _(WALL_MIN, slide, stat):
           {stat("~3¢", "same job on a rented cloud GPU")}
           {stat("<$1", "on a managed fine-tuning service")}
         </div>
-        <p style="margin-top: 3rem;">The <span class="az-gold">model is not the expensive
+        <p style="margin-top: 3rem;">The <span class="az-em">model is not the expensive
         part</span>. The real costs are upstream and downstream: preparing good training
         data, checking the result, and serving it reliably.</p>
         """,
@@ -707,7 +779,7 @@ def _(
 
     mo.vstack(
         [
-            frag_header("Same model, same question — adapter off vs on"),
+            frag_header("Same model, same question — adapter off vs on", "04 · The demo"),
             mo.vstack(
                 [
                     mo.hstack([example_pick, ask_button], justify="start", gap=1),
@@ -715,7 +787,7 @@ def _(
                     mo.Html(f'<div style="max-width: 100%;">{_result}</div>'),
                 ]
             ).style({"padding": "0 4rem"}),
-            frag_footer("04 · The demo"),
+            frag_footer(),
         ]
     ).style({"background": "var(--cream)", "padding-bottom": "2rem"})
     return
@@ -790,7 +862,7 @@ def _(slide):
           <tr><td>Your own hardware</td><td>~A$35–65 power</td>
               <td>nothing leaves the building; you own uptime</td></tr>
         </table>
-        <p style="margin-top: 1.5rem;">The punchline again: <span class="az-gold">the
+        <p style="margin-top: 1.5rem;">The punchline again: <span class="az-em">the
         model is not the expensive part</span> — a 3B assistant costs less to run than
         a phone plan. The costs that matter are people: data, evaluation, operations.</p>
         """,
@@ -876,7 +948,7 @@ def _(slide):
         </ul>
         <p style="margin-top: 2.5rem;">Everything ran on one machine. Nothing left the building.</p>
         <p class="az-italic" style="font-size: 1.75rem; margin-top: 2rem;">
-          Questions — <em class="az-gold">ask me anything</em>.
+          Questions — <em class="az-em">ask me anything</em>.
         </p>
         <p class="az-caption" style="margin-top: 2rem;">Leo Alves · azl.au · code + slides: this repo</p>
         """,

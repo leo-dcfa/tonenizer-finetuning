@@ -1,0 +1,93 @@
+# CLAUDE.md
+
+"Fine-tuning 101" talk for the Tokenizer meetup at Peregian Digital Hub: a marimo
+slide deck (`notebook.py`) backed by a real LoRA fine-tuning pipeline. Audience is
+non-ML ("vibecoders") — see the audience note in `PLAN.md`. Demo story: a "Noosa
+Council service assistant" — synthetic resident enquiries fine-tuned into a council
+voice, all on local hardware. Design docs: `PLAN.md` (arc, runbook, risks),
+`STYLE.md` (design system).
+
+## Commands
+
+Everything is one typer CLI (`scripts/cli.py`, installed as `tokenizer`):
+
+```bash
+uv run tokenizer generate --model qwen3.6-27b --n 1500   # synthetic data via local vLLM
+uv run tokenizer filter                                  # dedup/quality → train + eval split
+uv run tokenizer train                                   # LoRA on Qwen2.5-3B → adapters/ + cache/loss.json
+uv run tokenizer evaluate [--judge-only ...]             # base vs tuned → cache/comparisons.json
+uv run tokenizer interp                                  # merge + TransformerLens → cache/interp/
+uv run tokenizer build-theme                             # assets/theme-src.css → assets/theme.css
+
+uv run marimo run notebook.py --headless --watch --host $(tailscale ip -4) --port 2718
+uv run marimo edit notebook.py
+uv run ruff check . && uv run ruff format .              # also enforced by pre-commit
+uv run tokenizer filter --self-test                      # the only test suite
+```
+
+## Architecture
+
+- `scripts/` is an installed package (editable, uv_build) — import as
+  `from scripts.generate_data import ...` everywhere; no sys.path hacks, no
+  try/except import fallbacks (Leo explicitly removed them).
+- The deck reads **only** `cache/*.json`, `data/`, and `assets/` — every number on a
+  slide is loaded from artifacts, never typed. Retrain → deck updates. `cache/` and
+  filtered `data/` are tracked in git; `data/raw.jsonl`, `adapters/`, models are not.
+- `scripts/generate_data.py` owns the voice constants (`GREETING`, `SIGN_OFF`,
+  `CONTACT_LINE`, `STYLE_CARD`, `SYSTEM_PROMPT`); filter/evaluate/interp import them
+  so style checks can't drift.
+- Live demo cell in `notebook.py`: loads base+adapter once (lazy, `functools.cache`),
+  answers with adapter disabled vs enabled, same seed. Falls back to cached
+  comparisons when GPU is unavailable.
+
+## The GPU dance (this machine: one RTX 5090, 32GB)
+
+vLLM (qwen3.6-27b, used for data gen + LLM judge) and training/live-demo cannot
+share the GPU. Lifecycle lives in `/home/leo/inference/vllm-setup/Makefile`:
+
+```bash
+make -C ~/inference/vllm-setup down            # frees the GPU (ASK LEO FIRST)
+make -C ~/inference/vllm-setup up-qwen3.6-27b  # restores exactly the standard serve
+make -C ~/inference/vllm-setup status|health|logs
+```
+
+- Never kill vLLM without Leo's explicit ok; always restore it after.
+- After anyone uses the deck's live demo, the marimo server holds ~7GB until
+  restarted — restart it before bringing vLLM back or vLLM OOMs at boot (it
+  crash-loops silently under `--restart unless-stopped`; check `status`).
+- On talk day: vLLM stays down; the deck is the only GPU user.
+
+## Version gotchas (verified against installed 2026 libs — don't trust older docs)
+
+- transformers 5.x: `apply_chat_template(..., return_tensors="pt")` returns a
+  `BatchEncoding` — use `return_dict=True` and index `["input_ids"]`.
+  `warmup_ratio` is removed; float `warmup_steps` = ratio. Use `dtype=`, not
+  `torch_dtype=`.
+- trl 1.8: assistant-only masking is `SFTConfig(assistant_only_loss=True)` — it
+  auto-swaps in a `{% generation %}` chat template for Qwen.
+- qwen3.6 / DeepSeek are reasoning models: without
+  `chat_template_kwargs: {"enable_thinking": false}` they burn small `max_tokens`
+  budgets on hidden thinking and return empty content (generator sends this by
+  default; `--thinking` re-enables).
+- TransformerLens cannot load PEFT-wrapped models — `merge_and_unload()` first
+  (`scripts/merge_and_interp.py` does).
+
+## Styling
+
+Match azl.au, which is **blue-led, not gold-led**: uppercase `--blue-700` eyebrow
+labels over Fraunces-400 titles, italic emphasis in blue (`.az-em`), dark sections
+in `--blue-900`, `--blue-100` pill chips, white cards with soft navy shadows. Gold
+is a rare accent (code-highlight bar, chart series 2). Edit `assets/theme-src.css`
+then run `tokenizer build-theme` (embeds fonts + logo as data URIs for offline);
+never edit `assets/theme.css` directly. Chart palette `#1E5AA8/#B08432/#3B82C4` is
+CVD/contrast-validated (`STYLE.md`) — brand gold and blue-300 fail contrast on
+cream as marks; slate reads gray as a series. Marimo slides layout skips cells with
+no output; `slide()`/`divider()`/`chart_slide()` helpers in the notebook own all
+slide chrome.
+
+## State / outstanding
+
+Fine-tune is done and good (fingerprint 0/10 → 10/10, judge 3.0 → 4.9). Remaining:
+task #10 — offline dress rehearsal (WiFi-off click-through, live-demo test with GPU
+free, PDF fallback via `marimo export html --no-include-code` + print). Do not
+commit or push unless Leo asks.
