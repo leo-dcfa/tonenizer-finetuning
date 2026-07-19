@@ -95,6 +95,7 @@ def _(CACHE, DATA, json):
     COMPARISONS = json.loads((CACHE / "comparisons.json").read_text())
     LENS = json.loads((CACHE / "interp" / "logit_lens.json").read_text())
     LOGIT_DIFF = json.loads((CACHE / "interp" / "logit_diff.json").read_text())
+    LANDSCAPE = json.loads((CACHE / "landscape.json").read_text())
     TRAIN_EXAMPLE = json.loads((DATA / "train.jsonl").open().readline())
 
     META = LOSS["meta"]
@@ -118,6 +119,7 @@ def _(CACHE, DATA, json):
         FP_TUNED,
         JUDGE_BASE,
         JUDGE_TUNED,
+        LANDSCAPE,
         LENS,
         LOGIT_DIFF,
         LOSS,
@@ -347,11 +349,13 @@ def _(slide):
         "Leo Alves",
         """
         <p class="az-sub">engineer &amp; (accidental) indie researcher</p>
-        <div style="font-family: var(--font-display); font-weight: 500; font-size: 2.5rem;
-                    letter-spacing: -0.02em; color: var(--midnight); margin: 2.5rem 0 1.5rem 0;">
+        <p class="az-italic" style="font-size: 2.25rem; margin-top: 3rem;">
           <span style="color: var(--blue-700);">Azul</span> Labs
-        </div>
-        <p>AI and Salesforce consulting.</p>
+        </p>
+        <p style="margin-top: 0.75rem;">AI and Salesforce consulting.</p>
+        <p style="margin-top: 2.5rem;">
+          <a href="mailto:leo@azl.au" style="color: var(--blue-700);">leo@azl.au</a>
+          · azl.au</p>
         """,
         section="Fine-tuning 101 · Tokenizer - Peregian Digital Hub",
     )
@@ -1142,6 +1146,115 @@ def _(LOGIT_DIFF, esc, slide):
         specific, inspectable preferences changed, and we can see which.</p>
         """,
         section="06 · Inside the model",
+    )
+    return
+
+
+@app.cell
+def _(AZUL_CHART, LANDSCAPE, alt, chart_slide, pd):
+    # ══ Interp · 1D loss valley along the adapter direction ══
+    _df = pd.DataFrame({"scale": LANDSCAPE["alphas"], "loss": LANDSCAPE["loss_1d"]})
+    _marks = pd.DataFrame(
+        {
+            "scale": [0.0, 1.0],
+            "loss": [LANDSCAPE["loss_1d"][0], min(LANDSCAPE["loss_1d"], key=lambda v: v)],
+            "label": ["base model", "fine-tuned"],
+        }
+    )
+    _marks.loc[1, "loss"] = _df.loc[(_df["scale"] - 1.0).abs().idxmin(), "loss"]
+    _line = (
+        alt.Chart(_df)
+        .mark_line()
+        .encode(
+            x=alt.X("scale", title="adapter strength (0 = base · 1 = as trained)"),
+            y=alt.Y("loss", title="loss on council conversations", scale=alt.Scale(zero=False)),
+        )
+    )
+    _pts = (
+        alt.Chart(_marks)
+        .mark_point(filled=True, size=140, color=AZUL_CHART[1])
+        .encode(x="scale", y="loss")
+    )
+    _txt = (
+        alt.Chart(_marks)
+        .mark_text(dy=-14, fontWeight="bold", color=AZUL_CHART[1], fontSize=14)
+        .encode(x="scale", y="loss", text="label")
+    )
+    chart_slide(
+        "The valley training walked into",
+        (_line + _pts + _txt).properties(width=1150, height=400),
+        "The same descent as the loss curve, seen as geometry: walking from the base model "
+        "along the exact direction training moved, loss falls into a broad, flat valley. "
+        "The flat floor means many nearby weight settings are equally good — the model "
+        "isn't at a knife-edge, it's resting in a basin.",
+        "06 · Inside the model",
+    )
+    return
+
+
+@app.cell
+def _(AZUL_CHART, LANDSCAPE, alt, chart_slide, pd):
+    # ══ Interp · 2D loss surface slice ══
+    _a, _b = LANDSCAPE["a_axis"], LANDSCAPE["b_axis"]
+    _sa, _sb = (_a[1] - _a[0]) / 2, (_b[1] - _b[0]) / 2
+    _rows = [
+        {
+            "a": av,
+            "a2": av + 2 * _sa,
+            "b": bv,
+            "b2": bv + 2 * _sb,
+            "loss": LANDSCAPE["loss_2d"][j][i],
+        }
+        for j, bv in enumerate(_b)
+        for i, av in enumerate(_a)
+    ]
+    _grid = pd.DataFrame(_rows)
+    _heat = (
+        alt.Chart(_grid)
+        .mark_rect()
+        .encode(
+            x=alt.X(
+                "a",
+                title="adapter direction (0 = base · 1 = fine-tuned)",
+                scale=alt.Scale(domain=[_a[0], _a[-1] + 2 * _sa]),
+            ),
+            x2="a2",
+            y=alt.Y(
+                "b",
+                title="random direction (up to 2.5× the adapter's size)",
+                scale=alt.Scale(domain=[_b[0], _b[-1] + 2 * _sb]),
+            ),
+            y2="b2",
+            color=alt.Color(
+                "loss",
+                scale=alt.Scale(scheme="blues", reverse=True),
+                legend=alt.Legend(title="loss (dark = deep)"),
+            ),
+        )
+    )
+    _pts = pd.DataFrame(
+        {"a": [0.0 + _sa, 1.0 + _sa], "b": [0.0 + _sb, 0.0 + _sb], "label": ["base", "fine-tuned"]}
+    )
+    _dots = (
+        alt.Chart(_pts)
+        .mark_point(filled=True, size=160, color=AZUL_CHART[1], stroke="white", strokeWidth=1.5)
+        .encode(x="a", y="b")
+    )
+    _lbl = (
+        alt.Chart(_pts)
+        .mark_text(dy=-14, fontWeight="bold", color=AZUL_CHART[1], fontSize=14)
+        .encode(x="a", y="b", text="label")
+    )
+    chart_slide(
+        "The same valley from above",
+        (_heat + _dots + _lbl).properties(width=1000, height=420),
+        "A 2-D slice of the 3-billion-dimension loss surface. Left-right: the direction training "
+        "moved — all the action. Up-down: a random direction 2.5× bigger — almost nothing "
+        "changes. In a space this vast nearly every direction is flat; training's whole job is "
+        "finding the rare directions that matter (and why a rank-16 funnel is enough). An "
+        "emerging field — developmental interpretability — studies how structure forms "
+        "through exactly this geometry.",
+        "06 · Inside the model",
     )
     return
 

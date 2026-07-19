@@ -19,6 +19,7 @@ uv run tokenizer filter                                  # dedup/quality → tra
 uv run tokenizer train                                   # LoRA on Qwen2.5-3B → adapters/ + cache/loss.json
 uv run tokenizer evaluate [--judge-only ...]             # base vs tuned → cache/comparisons.json
 uv run tokenizer interp                                  # merge + TransformerLens → cache/interp/
+uv run tokenizer landscape                               # loss-valley slices → cache/landscape.json
 uv run tokenizer build-theme                             # assets/theme-src.css → assets/theme.css
 
 uv run marimo run notebook.py --headless --watch --host $(tailscale ip -4) --port 2718
