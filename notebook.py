@@ -343,7 +343,6 @@ def _(COMPARISONS, mo):
 
 @app.cell
 def _(slide):
-    # ══ 1 · Title / About me ══
     slide(
         "Leo Alves",
         """
@@ -367,20 +366,20 @@ def _(divider):
 
 @app.cell
 def _(slide):
-    # ══ 2 · The mental model ══
     slide(
-        "A smart graduate, given on-the-job training",
+        "Everyone wants frontier level capability.",
         """
-        <p>A base model is a <strong>very well-read new hire</strong>: articulate,
-        knows a bit of everything, but answers like a generic assistant.</p>
-        <p>Fine-tuning is <strong>on-the-job training</strong>. You show it a few
-        hundred examples of how <em>your</em> organisation responds, and it absorbs
-        the <span class="az-em">behaviour</span>: the tone, the structure, the
-        sign-off, the judgement calls.</p>
-        <p style="margin-top: 2rem;">What it does <strong>not</strong> do is teach new facts.
-        Facts change — bin days, fees, opening hours. Those live in a lookup system
-        the model reads at answer time (that pattern is called RAG). <br/>
-        <strong>Rule of thumb: behaviour → fine-tune · knowledge → look it up.</strong></p>
+        <p>But...</p>
+        <br/>
+        <p>
+            <ul>
+            <li>You might not need frontier level capability at every task.</li>
+            <li>Behaviour/style/speech is defined by a different organisation.</li>
+            <li>You have have a very specific tone that models struggle to be consistent with.</li>
+            <li>You don't want to feed a model dozens of examples for every time you run the same workflow.</li>
+            <li>(Despite their beliefs) Not everyone is a snowflake.</li>
+            </ul>
+        </p>
         """,
         section="01 · Fine-tuning Basics",
     )
@@ -390,9 +389,9 @@ def _(slide):
 @app.cell
 def _(slide):
     slide(
-        "When is it worth it?",
+        "Do I need it?",
         """
-        <p>It's usually the last option.</p>
+        <p>Most of the time, nope.</p>
         <br/>
         <ul>
           <li>Better Prompting.</li>
@@ -401,6 +400,31 @@ def _(slide):
         </ul>
         """,
         section="01 · Finetuning Basics",
+    )
+    return
+
+
+@app.cell
+def _(slide):
+    slide(
+        "Other considerations",
+        """
+        <br/>
+        <ul>
+          <li><strong>Frontier <s>is</s> can be expensive.</strong> A frontier API call costs orders of
+              magnitude more per reply than a small model you own. At thousands of
+              requests a month, a fine-tuned 3B doing one job well pays for itself
+              almost immediately.</li>
+          <li><strong>Privacy.</strong> Some data must never leave the building —
+              resident details, health, legal. Fine-tune and serve on your own
+              hardware and nothing is ever sent to a third party.</li>
+          <li><strong>Latency &amp; offline.</strong> Local small models answer fast and
+              keep working when the internet doesn't.</li>
+          <li><strong>Control.</strong> Your model can't be deprecated, re-priced, or
+              silently changed under you.</li>
+        </ul>
+        """,
+        section="01 · Fine-tuning Basics",
     )
     return
 
@@ -500,8 +524,6 @@ def _(slide):
           <li><strong>Train</strong> — hyperparameters, context window, watch the loss.</li>
           <li><strong>Evaluate, deploy, monitor</strong> — held-out tests before, drift checks after.</li>
         </ol>
-        <p style="margin-top: 1.5rem;">The rest of this talk walks this exact pipeline —
-        with a real model we trained on this machine.</p>
         <p class="az-caption">Framework: Databricks, "The Ultimate Guide to LLM Fine Tuning".</p>
         """,
         section="01 · Finetuning Basics",
@@ -540,12 +562,11 @@ def _(slide):
         "Step 2: Choosing a base model",
         """
         <ul>
-          <li><strong>Qwen vs Llama vs GLM — does it matter?</strong> Less than the
-              internet argues. Any modern instruct model fine-tunes well. What actually
-              differs: <strong>licence</strong>, available <strong>sizes</strong>, language
+          <li><strong>Qwen vs Llama vs GLM vs Whatever — does it matter?</strong> Less than the
+              internet argues. Any modern model fine-tunes well. What differs: <strong>licence</strong>, available <strong>sizes</strong>, language
               coverage, and tooling/serving support.</li>
-          <li><strong>Be scientific, not tribal</strong> — a LoRA run is minutes. Fine-tune
-              two or three candidates and let <em>your held-out eval</em> pick the winner.</li>
+          <li><strong>Be scientific</strong>. Most of the AI talk is borderline religious. Fine-tune
+              two or three candidates, evaluate and pick a winner. Iterate.</li>
           <li><strong>When bigger is better:</strong> if the small model can't do the task
               at all — even with a perfect prompt — fine-tuning won't create the missing
               capability. Reasoning-heavy task → step up.</li>
@@ -566,20 +587,16 @@ def _(slide):
     slide(
         "Step 3: Pick a method",
         """
-        <table>
-          <tr><th>Method</th><th>What changes</th><th>When</th></tr>
-          <tr><td><strong>Full fine-tuning</strong></td><td>every weight</td>
-              <td>maximum shift; needs serious GPUs and care</td></tr>
-          <tr><td><strong>LoRA</strong> (PEFT)</td><td>small adapter, ~1% of weights</td>
-              <td>the default: minutes on a gaming GPU</td></tr>
-          <tr><td><strong>QLoRA</strong></td><td>LoRA on a compressed base</td>
-              <td>big models on small cards</td></tr>
-          <tr><td><strong>Instruction / SFT</strong></td><td>the data recipe (pairs of
-              prompt → good reply)</td><td>what we feed any of the above</td></tr>
-          <tr><td><strong>Preference tuning</strong> (DPO/RLHF)</td><td>learns from
-              better-vs-worse pairs</td><td>polish, safety, taste</td></tr>
-          <tr><td><strong>Continued pretraining</strong></td><td>plain domain text, no
-              labels</td><td>soaking in a domain's language</td></tr>
+        <p>There are a lot of methods. Here are a few.</p>
+        <table style="margin-top: 1rem;">
+          <tr><th>Method</th><th>What changes</th></tr>
+          <tr><td><strong>Full fine-tuning</strong></td><td>every weight</td></tr>
+          <tr><td><strong>LoRA</strong> (PEFT)</td><td>small adapter, ~1% of weights</td></tr>
+          <tr><td><strong>QLoRA</strong></td><td>LoRA on a compressed base</td></tr>
+          <tr><td><strong>Instruction / SFT</strong></td><td>nothing — it's the
+              <em>recipe</em>, not the mechanism: train on prompt → good-reply pairs</td></tr>
+          <tr><td><strong>Preference tuning</strong> (DPO/RLHF)</td><td>another recipe:
+              learn from better-vs-worse pairs</td></tr>
         </table>
         """,
         section="01 · Finetuning Basics",
@@ -591,7 +608,7 @@ def _(slide):
 def _(slide):
     # ══ Process · today's pick ══
     slide(
-        "Today, we touch LoRA",
+        "LoRA/QLoRA",
         """
         <p style="font-family: var(--font-display); font-size: 2.25rem; line-height: 1.3;
                   color: var(--midnight); max-width: 56rem;">
@@ -601,6 +618,79 @@ def _(slide):
         </p>
         <p style="margin-top: 1.5rem;">Supervised fine-tuning with a LoRA adapter — the
         combination that makes everything you're about to see possible on one machine.</p>
+        """,
+        section="01 · Finetuning Basics",
+        sub="De facto industry standard",
+    )
+    return
+
+
+@app.cell
+def _(META, slide):
+    # ══ Process · LoRA anatomy: frozen W + trainable B·A ══
+    _r = META["lora_rank"]
+    _pct = 100 * META["trainable_params"] / META["total_params"]
+    _box = (
+        "display:flex;align-items:center;justify-content:center;"
+        "font-family:var(--font-display);border-radius:12px;"
+    )
+    slide(
+        "Maths behind LoRA",
+        f"""
+        <div style="display:flex;align-items:center;justify-content:center;gap:2rem;margin:1rem 0 0.5rem 0;">
+          <div style="text-align:center;">
+            <div style="{_box}width:230px;height:230px;background:var(--blue-100);border:2px solid var(--blue-700);font-size:3.5rem;color:var(--blue-700);">W</div>
+            <p class="az-caption" style="text-align:center;">2048 × 2048 · frozen ❄<br/>4.2M numbers per layer</p>
+          </div>
+          <div style="font-size:3rem;color:var(--slate);">+</div>
+          <div style="text-align:center;">
+            <div style="display:flex;align-items:center;gap:1rem;">
+              <div style="{_box}width:56px;height:230px;background:var(--white);border:2px solid var(--chart-2);font-size:2rem;color:var(--chart-2);">B</div>
+              <div style="font-size:1.75rem;color:var(--slate);">×</div>
+              <div style="{_box}width:230px;height:56px;background:var(--white);border:2px solid var(--chart-2);font-size:2rem;color:var(--chart-2);">A</div>
+            </div>
+            <p class="az-caption" style="text-align:center;">2048 × {_r} and {_r} × 2048 · trainable<br/>66k numbers — 1.6% of the layer</p>
+          </div>
+        </div>
+        <p style="font-family:var(--font-mono);font-size:1.5rem;text-align:center;color:var(--midnight);margin-top:0.5rem;">
+          h &nbsp;=&nbsp; <span style="color:var(--blue-700);">W·x</span>
+          &nbsp;+&nbsp; (α / r) · <span style="color:var(--chart-2);">B·A·x</span>
+        </p>
+        <ul style="margin-top:1rem;">
+          <li>The original weights <strong>W never move</strong>. The <em>change</em> is forced
+              through a bottleneck of rank r&nbsp;=&nbsp;{_r} — LoRA's bet is that the
+              adjustment a narrow task needs is <strong>simple</strong>, even when the model isn't.</li>
+          <li>Every input <strong>x flows through both paths</strong> and the outputs are added:
+              the big frozen path does the thinking, the tiny B·A path learns just the
+              difference in behaviour.</li>
+        </ul>
+        """,
+        section="01 · Finetuning Basics",
+    )
+    return
+
+
+@app.cell
+def _(META, slide):
+    # ══ Process · LoRA in plain words ══
+    slide(
+        "LoRA, in plain words",
+        f"""
+        <ul>
+          <li><strong>A is the down-projection</strong> — squeezes the layer's 2048 working
+              numbers into just {META["lora_rank"]}: a summary along {META["lora_rank"]}
+              <em>learned</em> directions.</li>
+          <li><strong>B is the up-projection</strong> — expands those {META["lora_rank"]}
+              numbers back into a full-size correction, added to the layer's output.</li>
+          <li><strong>The adapter is a funnel</strong>: 2048 → {META["lora_rank"]} → 2048.
+              Everything it does must fit through the narrow waist — it can't rewrite the
+              model, only steer it. That constraint is the feature.</li>
+          <li><strong>r is the room</strong> — the width of the waist. More r = more
+              capacity to change behaviour, bigger adapter.</li>
+          <li><strong>α is the volume</strong> — the correction is scaled by
+              α/r (ours: {META["lora_alpha"]}/{META["lora_rank"]} = ×2), so the adapter's
+              loudness stays comparable when you experiment with r.</li>
+        </ul>
         """,
         section="01 · Finetuning Basics",
     )
@@ -828,7 +918,7 @@ def _(TRAIN_EXAMPLE, code_card, json, slide):
 def _(STYLE_CARD, exhibit, slide):
     # ══ 10 · Synthetic data + the style card ══
     slide(
-        "We had no data — so we wrote the spec and generated it",
+        "Synthetic data",
         exhibit(
             STYLE_CARD,
             caption=(
@@ -985,9 +1075,8 @@ def _(slide):
           <tr><td>Your own hardware</td><td>~A$35–65 power</td>
               <td>nothing leaves the building; you own uptime</td></tr>
         </table>
-        <p style="margin-top: 1.5rem;">The punchline again: <span class="az-em">the
-        model is not the expensive part</span> — a 3B assistant costs less to run than
-        a phone plan. The costs that matter are people: data, evaluation, operations.</p>
+        <p style="margin-top: 1.5rem;"><span class="az-em">the
+        model is not the expensive part</span>. The costs that matter are people: data, evaluation, operations.</p>
         """,
         section="05 · Running it",
         sub="July 2026 prices — they drift; the shape doesn't",
@@ -1061,19 +1150,14 @@ def _(LOGIT_DIFF, esc, slide):
 def _(slide):
     # ══ 18 · Close ══
     slide(
-        "What we did in one hour",
+        "Questions",
         """
-        <ul>
-          <li>Wrote a <strong>style card</strong>, generated 1,500 synthetic examples locally</li>
-          <li>Filtered to 1,365, trained a <strong>60 MB adapter</strong> in under 5 minutes</li>
-          <li>Went from <strong>0/10 to 10/10</strong> on the council voice — verified on unseen questions</li>
-          <li>Looked inside and <strong>saw the decision</strong> the training installed</li>
-        </ul>
-        <p style="margin-top: 2.5rem;">Everything ran on one machine. Nothing left the building.</p>
-        <p class="az-italic" style="font-size: 1.75rem; margin-top: 2rem;">
-          Questions — <em class="az-em">ask me anything</em>.
+        <p class="az-italic" style="font-size: 2.25rem; margin-top: 3rem;">
+          Thank <em class="az-em">you</em>.
         </p>
-        <p class="az-caption" style="margin-top: 2rem;">Leo Alves · azl.au · code + slides: this repo</p>
+        <p style="margin-top: 2.5rem;">Leo Alves ·
+          <a href="mailto:leo@azl.au" style="color: var(--blue-700);">leo@azl.au</a>
+          · azl.au</p>
         """,
         section="Fine-tuning 101 · Tokenizer - Peregian Digital Hub",
     )

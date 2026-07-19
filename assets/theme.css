@@ -238,7 +238,7 @@ a[href*="github.com/marimo-team/marimo"],
 a[href*="marimo.io"] { display: none !important; }
 
 /* ── tables ── */
-.az-slide table { border-collapse: collapse; font-size: 1.15rem; }
+.az-slide table { border-collapse: collapse; font-size: 1.15rem; width: 100%; }
 .az-slide th {
   font-weight: 600;
   font-size: 0.85rem;
