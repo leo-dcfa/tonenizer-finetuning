@@ -97,7 +97,7 @@ body, #root, .marimo {
 .az-slide ol { padding-left: 1.4rem; list-style: decimal; }
 .az-slide li { color: var(--slate); margin-bottom: 0.65rem; }
 .az-slide li strong { color: var(--midnight); }
-.az-body { max-width: 62rem; }
+.az-body { max-width: none; }  /* full-bleed by default — matches the option slides */
 
 .az-hero {
   font-family: var(--font-display);

@@ -488,6 +488,126 @@ def _(COMPARISONS, cards, slide):
 
 
 @app.cell
+def _(slide):
+    # ══ Process · overview (after Databricks' end-to-end guide) ══
+    slide(
+        "The process, end to end",
+        """
+        <ol>
+          <li><strong>Data preparation</strong> — collect, clean, format, split.</li>
+          <li><strong>Choose a base model</strong> — and what the fine-tuned one must do.</li>
+          <li><strong>Pick a method</strong> — full fine-tune, LoRA, QLoRA, preference tuning…</li>
+          <li><strong>Train</strong> — hyperparameters, context window, watch the loss.</li>
+          <li><strong>Evaluate, deploy, monitor</strong> — held-out tests before, drift checks after.</li>
+        </ol>
+        <p style="margin-top: 1.5rem;">The rest of this talk walks this exact pipeline —
+        with a real model we trained on this machine.</p>
+        <p class="az-caption">Framework: Databricks, "The Ultimate Guide to LLM Fine Tuning".</p>
+        """,
+        section="01 · Finetuning Basics",
+    )
+    return
+
+
+@app.cell
+def _(slide):
+    # ══ Process · step 1: data prep ══
+    slide(
+        "Step 1: Data preparation",
+        """
+        <ul>
+          <li><strong>Small and clean beats big and noisy</strong> — every bad example
+              teaches a bad habit; 1,000 great pairs outperform 10,000 scraped ones.</li>
+          <li><strong>Look like production</strong> — train on the messy enquiries you
+              actually receive, not tidy textbook ones.</li>
+          <li><strong>Same shape as inference</strong> — identical format, system prompt
+              and structure the model will see live.</li>
+          <li><strong>Hold some back</strong> — split train / validation / test before
+              anything else, or you can't tell learning from memorising.</li>
+        </ul>
+        <p style="margin-top: 1.5rem;">This is where the calendar time goes — ours was
+        synthetic (more on that soon), which is why the whole build fit in an evening.</p>
+        """,
+        section="01 · Finetuning Basics",
+    )
+    return
+
+
+@app.cell
+def _(slide):
+    # ══ Process · step 2: choosing models ══
+    slide(
+        "Step 2: Choosing a base model",
+        """
+        <ul>
+          <li><strong>Qwen vs Llama vs GLM — does it matter?</strong> Less than the
+              internet argues. Any modern instruct model fine-tunes well. What actually
+              differs: <strong>licence</strong>, available <strong>sizes</strong>, language
+              coverage, and tooling/serving support.</li>
+          <li><strong>Be scientific, not tribal</strong> — a LoRA run is minutes. Fine-tune
+              two or three candidates and let <em>your held-out eval</em> pick the winner.</li>
+          <li><strong>When bigger is better:</strong> if the small model can't do the task
+              at all — even with a perfect prompt — fine-tuning won't create the missing
+              capability. Reasoning-heavy task → step up.</li>
+          <li><strong>When smaller wins:</strong> the model can do it but inconsistently —
+              fine-tuning fixes consistency, and you keep the cost and speed of small.</li>
+          <li><strong>Start from the closest model</strong> — chat behaviour → the
+              <em>instruct</em> variant, never the raw base.</li>
+        </ul>
+        """,
+        section="01 · Finetuning Basics",
+    )
+    return
+
+
+@app.cell
+def _(slide):
+    # ══ Process · step 3: the methods ══
+    slide(
+        "Step 3: Pick a method",
+        """
+        <table>
+          <tr><th>Method</th><th>What changes</th><th>When</th></tr>
+          <tr><td><strong>Full fine-tuning</strong></td><td>every weight</td>
+              <td>maximum shift; needs serious GPUs and care</td></tr>
+          <tr><td><strong>LoRA</strong> (PEFT)</td><td>small adapter, ~1% of weights</td>
+              <td>the default: minutes on a gaming GPU</td></tr>
+          <tr><td><strong>QLoRA</strong></td><td>LoRA on a compressed base</td>
+              <td>big models on small cards</td></tr>
+          <tr><td><strong>Instruction / SFT</strong></td><td>the data recipe (pairs of
+              prompt → good reply)</td><td>what we feed any of the above</td></tr>
+          <tr><td><strong>Preference tuning</strong> (DPO/RLHF)</td><td>learns from
+              better-vs-worse pairs</td><td>polish, safety, taste</td></tr>
+          <tr><td><strong>Continued pretraining</strong></td><td>plain domain text, no
+              labels</td><td>soaking in a domain's language</td></tr>
+        </table>
+        """,
+        section="01 · Finetuning Basics",
+    )
+    return
+
+
+@app.cell
+def _(slide):
+    # ══ Process · today's pick ══
+    slide(
+        "Today, we touch LoRA",
+        """
+        <p style="font-family: var(--font-display); font-size: 2.25rem; line-height: 1.3;
+                  color: var(--midnight); max-width: 56rem;">
+          Train <em class="az-em">~1%</em> of the weights, get a
+          <em class="az-em">60&nbsp;MB</em> file, in
+          <em class="az-em">minutes</em> on a gaming GPU.
+        </p>
+        <p style="margin-top: 1.5rem;">Supervised fine-tuning with a LoRA adapter — the
+        combination that makes everything you're about to see possible on one machine.</p>
+        """,
+        section="01 · Finetuning Basics",
+    )
+    return
+
+
+@app.cell
 def _(ASSETS, base64):
     # ── shared: embed the DeepLearning.AI × AMD pasta pages as data URIs ──
     def img_uri(name: str) -> str:
@@ -513,7 +633,7 @@ def _(img_uri, slide):
         <p class="az-caption">Illustration: DeepLearning.AI &amp; AMD, “Post-training of LLMs”.</p>
         """,
         section="01 · Finetuning Basics",
-        sub="Fine-tuning has two flavours — today is this one",
+        sub="Fine-tuning vs post-training RL — today is the first one",
     )
     return
 
@@ -604,7 +724,7 @@ def _(LOSS, alt, chart_slide, pd):
             x=alt.X("step", title="training step"),
             y=alt.Y("loss", title="loss (how wrong the guesses are)"),
         )
-        .properties(width=850, height=380)
+        .properties(width=1150, height=400)
     )
     chart_slide(
         "Watching it learn",
@@ -624,13 +744,16 @@ def _(WALL_MIN, slide, stat):
         "What did that just cost?",
         f"""
         <div class="az-stats">
-          {stat(f"{WALL_MIN:.1f} min", "training time · one RTX 5090")}
-          {stat("~3¢", "same job on a rented cloud GPU")}
+          {stat(f"{WALL_MIN:.1f} min", "training · one RTX 5090")}
+          {stat("~90 min", "generating 1,500 synthetic examples · local 27B, unattended")}
+          {stat("~3¢", "same training job on a rented cloud GPU")}
           {stat("<$1", "on a managed fine-tuning service")}
         </div>
         <p style="margin-top: 3rem;">The <span class="az-em">model is not the expensive
-        part</span>. The real costs are upstream and downstream: preparing good training
-        data, checking the result, and serving it reliably.</p>
+        part</span> — the <strong>dataset</strong> is. Ours was synthetic, generated
+        overnight by a bigger local model. In the real world, with real data, budget
+        days-to-weeks for collecting, cleaning and labelling examples: that's where
+        fine-tuning projects actually spend their time.</p>
         """,
         section="02 · How training works",
         sub="Real numbers from the run you just saw",
@@ -896,7 +1019,7 @@ def _(AZUL_CHART, LENS, alt, chart_slide, pd):
                 scale=alt.Scale(domain=["tuned", "base"], range=[AZUL_CHART[0], AZUL_CHART[1]]),
             ),
         )
-        .properties(width=850, height=380)
+        .properties(width=1150, height=400)
     )
     chart_slide(
         "Where the greeting lives",
