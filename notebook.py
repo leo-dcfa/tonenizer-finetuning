@@ -387,7 +387,7 @@ def _(slide):
             </ul>
         </p>
         """,
-        section="01 · Fine-tuning Basics",
+        section="Fine-tuning basics",
     )
     return
 
@@ -405,7 +405,7 @@ def _(slide):
           <li>Fine-tune.</li>
         </ul>
         """,
-        section="01 · Finetuning Basics",
+        section="Fine-tuning basics",
     )
     return
 
@@ -430,7 +430,7 @@ def _(slide):
               silently changed under you.</li>
         </ul>
         """,
-        section="01 · Fine-tuning Basics",
+        section="Fine-tuning basics",
     )
     return
 
@@ -465,7 +465,7 @@ def _(exhibit, slide):
         Its weaknesses: you pay for those tokens on <strong>every request*</strong>, and on
         long conversations the model drifts away from it.</p>
         """,
-        section="01 · Finetuning Basics",
+        section="Fine-tuning basics",
         wide=True,
     )
     return
@@ -487,7 +487,7 @@ def _(ASSETS, code_card, slide):
         </div>
         <p style="margin-top: 1rem;">Answer is deterministic, model decides when to invoke tool.</p>
         """,
-        section="01 · Finetuning Basics",
+        section="Fine-tuning basics",
         wide=True,
     )
     return
@@ -511,7 +511,7 @@ def _(COMPARISONS, cards, slide):
         task, a fine-tuned small model can match a much larger general one — this 3B
         assistant runs for a fraction of what frontier-model API calls cost per reply.</p>
         """,
-        section="01 · Finetuning Basics",
+        section="Fine-tuning basics",
         wide=True,
     )
     return
@@ -532,7 +532,7 @@ def _(slide):
         </ol>
         <p class="az-caption">Framework: Databricks, "The Ultimate Guide to LLM Fine Tuning".</p>
         """,
-        section="01 · Finetuning Basics",
+        section="Fine-tuning basics",
     )
     return
 
@@ -556,7 +556,7 @@ def _(slide):
         <p style="margin-top: 1.5rem;">This is where the calendar time goes — ours was
         synthetic (more on that soon), which is why the whole build fit in an evening.</p>
         """,
-        section="01 · Finetuning Basics",
+        section="Fine-tuning basics",
     )
     return
 
@@ -582,7 +582,7 @@ def _(slide):
               <em>instruct</em> variant, never the raw base.</li>
         </ul>
         """,
-        section="01 · Finetuning Basics",
+        section="Fine-tuning basics",
     )
     return
 
@@ -605,7 +605,7 @@ def _(slide):
               learn from better-vs-worse pairs</td></tr>
         </table>
         """,
-        section="01 · Finetuning Basics",
+        section="Fine-tuning basics",
     )
     return
 
@@ -625,7 +625,7 @@ def _(slide):
         <p style="margin-top: 1.5rem;">Supervised fine-tuning with a LoRA adapter — the
         combination that makes everything you're about to see possible on one machine.</p>
         """,
-        section="01 · Finetuning Basics",
+        section="Fine-tuning basics",
         sub="De facto industry standard",
     )
     return
@@ -671,7 +671,7 @@ def _(META, slide):
               difference in behaviour.</li>
         </ul>
         """,
-        section="01 · Finetuning Basics",
+        section="Fine-tuning basics",
     )
     return
 
@@ -698,7 +698,7 @@ def _(META, slide):
               loudness stays comparable when you experiment with r.</li>
         </ul>
         """,
-        section="01 · Finetuning Basics",
+        section="Fine-tuning basics",
     )
     return
 
@@ -728,7 +728,7 @@ def _(img_uri, slide):
         voice, format, and consistency.</p>
         <p class="az-caption">Illustration: DeepLearning.AI &amp; AMD, “Post-training of LLMs”.</p>
         """,
-        section="01 · Finetuning Basics",
+        section="Fine-tuning basics",
         sub="Fine-tuning vs post-training RL — today is the first one",
     )
     return
@@ -749,7 +749,7 @@ def _(img_uri, slide):
         way there. That's how models learn to reason. (The follow-up talk.)</p>
         <p class="az-caption">Illustration: DeepLearning.AI &amp; AMD, “Post-training of LLMs”.</p>
         """,
-        section="01 · Finetuning Basics",
+        section="Fine-tuning basics",
     )
     return
 
@@ -777,7 +777,7 @@ def _(slide):
         “always open with <em>Thanks for reaching out to Noosa Council</em>” is never
         stated. The model infers it because every single example does it.</p>
         """,
-        section="02 · How training works",
+        section="How training works",
     )
     return
 
@@ -803,7 +803,7 @@ model.print_trainable_parameters()
             ),
             highlight={6},
         ),
-        section="02 · How training works",
+        section="How training works",
         sub="Low-Rank Adaptation — the one piece of jargon worth knowing",
     )
     return
@@ -828,7 +828,7 @@ def _(LOSS, alt, chart_slide, pd):
         "Our actual training run: 258 steps, 3 passes over the data. The fast drop is the "
         "model picking up the voice; the floor is where legitimate wording choices remain — "
         "pushing past it would mean memorising the examples.",
-        "02 · How training works",
+        "How training works",
     )
     return
 
@@ -851,7 +851,7 @@ def _(WALL_MIN, slide, stat):
         days-to-weeks for collecting, cleaning and labelling examples: that's where
         fine-tuning projects actually spend their time.</p>
         """,
-        section="02 · How training works",
+        section="How training works",
         sub="Real numbers from the run you just saw",
     )
     return
@@ -877,7 +877,7 @@ def _(slide):
         <p style="margin-top: 1.5rem;">All four produce the same thing: a small adapter
         file you can take anywhere.</p>
         """,
-        section="02 · How training works",
+        section="How training works",
     )
     return
 
@@ -915,7 +915,7 @@ def _(TRAIN_EXAMPLE, code_card, json, slide):
             ),
             lang="json",
         ),
-        section="03 · The data",
+        section="Training data",
     )
     return
 
@@ -934,7 +934,7 @@ def _(STYLE_CARD, exhibit, slide):
                 "this approach exists."
             ),
         ),
-        section="03 · The data",
+        section="Training data",
     )
     return
 
@@ -959,7 +959,7 @@ def _(slide, stat):
           {stat("10", "held back to test with")}
         </div>
         """,
-        section="03 · The data",
+        section="Training data",
         sub="Quality beats quantity — every bad example teaches a bad habit",
     )
     return
@@ -998,7 +998,7 @@ def _(
 
     mo.vstack(
         [
-            frag_header("Same model, same question — adapter off vs on", "04 · The demo"),
+            frag_header("Same model, same question — adapter off vs on", "Demo"),
             mo.vstack(
                 [
                     mo.hstack([example_pick, ask_button], justify="start", gap=1),
@@ -1028,7 +1028,7 @@ def _(FP_BASE, FP_TUNED, JUDGE_BASE, JUDGE_TUNED, slide, stat):
         a model can ace its own homework by memorising it. These questions weren't in
         the homework.</p>
         """,
-        section="04 · The demo",
+        section="Demo",
     )
     return
 
@@ -1059,7 +1059,7 @@ vllm serve Qwen/Qwen2.5-3B-Instruct --enable-lora \\
             ),
             highlight={4, 5},
         ),
-        section="05 · Running it",
+        section="Running it for real",
     )
     return
 
@@ -1084,7 +1084,7 @@ def _(slide):
         <p style="margin-top: 1.5rem;"><span class="az-em">the
         model is not the expensive part</span>. The costs that matter are people: data, evaluation, operations.</p>
         """,
-        section="05 · Running it",
+        section="Running it for real",
         sub="July 2026 prices — they drift; the shape doesn't",
     )
     return
@@ -1122,7 +1122,7 @@ def _(AZUL_CHART, LENS, alt, chart_slide, pd):
         'Reading the model\'s "mind" layer by layer as it starts its reply. The fine-tuned '
         'model becomes certain it will say "Thanks" in the last few layers — the base model '
         "never considers it (≈1%). The 60 MB adapter rewired exactly that decision.",
-        "06 · Inside the model",
+        "Inside the model",
     )
     return
 
@@ -1147,7 +1147,7 @@ def _(LOGIT_DIFF, esc, slide):
         <strong>“Thanks”</strong>. The model didn't vaguely get “more polite” —
         specific, inspectable preferences changed, and we can see which.</p>
         """,
-        section="06 · Inside the model",
+        section="Inside the model",
     )
     return
 
@@ -1182,7 +1182,7 @@ def _(INDUCTION, esc, slide):
         it while writing the final “No…”. Heads that find-and-copy earlier text are called
         <em>induction heads</em> — one of the first circuits ever reverse-engineered in LLMs.</p>
         """,
-        section="06 · Inside the model",
+        section="Inside the model",
     )
     return
 
@@ -1243,7 +1243,7 @@ def _(INDUCTION, alt, chart_slide, head_pick, mo, pd):
         f"token one is its 'nowhere'. Head {INDUCTION['head']} idles there too — until its "
         f"trigger: on the bottom row (writing “No”) it snaps 98% onto “osa”. Heads that "
         f"find-and-continue earlier text like this are induction heads.",
-        "06 · Inside the model",
+        "Inside the model",
     )
     return
 
@@ -1285,7 +1285,7 @@ def _(AZUL_CHART, LANDSCAPE, alt, chart_slide, pd):
         "along the exact direction training moved, loss falls into a broad, flat valley. "
         "The flat floor means many nearby weight settings are equally good — the model "
         "isn't at a knife-edge, it's resting in a basin.",
-        "06 · Inside the model",
+        "Inside the model",
     )
     return
 
@@ -1352,7 +1352,7 @@ def _(AZUL_CHART, LANDSCAPE, alt, chart_slide, pd):
         "finding the rare directions that matter (and why a rank-16 funnel is enough). An "
         "emerging field — developmental interpretability — studies how structure forms "
         "through exactly this geometry.",
-        "06 · Inside the model",
+        "Inside the model",
     )
     return
 
