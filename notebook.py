@@ -96,6 +96,7 @@ def _(CACHE, DATA, json):
     LENS = json.loads((CACHE / "interp" / "logit_lens.json").read_text())
     LOGIT_DIFF = json.loads((CACHE / "interp" / "logit_diff.json").read_text())
     LANDSCAPE = json.loads((CACHE / "landscape.json").read_text())
+    INDUCTION = json.loads((CACHE / "interp" / "induction.json").read_text())
     TRAIN_EXAMPLE = json.loads((DATA / "train.jsonl").open().readline())
 
     META = LOSS["meta"]
@@ -117,6 +118,7 @@ def _(CACHE, DATA, json):
         COMPARISONS,
         FP_BASE,
         FP_TUNED,
+        INDUCTION,
         JUDGE_BASE,
         JUDGE_TUNED,
         LANDSCAPE,
@@ -1146,6 +1148,102 @@ def _(LOGIT_DIFF, esc, slide):
         specific, inspectable preferences changed, and we can see which.</p>
         """,
         section="06 · Inside the model",
+    )
+    return
+
+
+@app.cell
+def _(INDUCTION, esc, slide):
+    # ══ Interp · the model has no word for Noosa ══
+    _w = INDUCTION["weight"]
+    _row = INDUCTION["attn_row"]
+    _toks = INDUCTION["tokens"]
+    _chips = "".join(
+        f'<span style="display:inline-block;margin:2px;padding:0.25rem 0.5rem;border-radius:6px;'
+        f"background:rgba(30,90,168,{min(1.0, 0.06 + a * 1.1):.2f});"
+        f"color:{'var(--white)' if a > 0.4 else 'var(--midnight)'};"
+        f'font-family:var(--font-mono);font-size:0.95rem;">{esc(t.strip()) or "␣"}</span>'
+        for t, a in zip(_toks, _row, strict=True)
+    )
+    slide(
+        "The model has no word for “Noosa”",
+        f"""
+        <p>The tokenizer splits it into puzzle pieces:
+          <span style="font-family:var(--font-mono);background:var(--blue-100);color:var(--blue-700);padding:0.2rem 0.5rem;border-radius:6px;">No</span>
+          <span style="font-family:var(--font-mono);background:var(--blue-100);color:var(--blue-700);padding:0.2rem 0.5rem;border-radius:6px;">osa</span>
+          <span style="font-family:var(--font-mono);background:var(--blue-100);color:var(--blue-700);padding:0.2rem 0.5rem;border-radius:6px;">&nbsp;Council</span>
+          — so how does it ever spell the town right?</p>
+        <p><strong>It looks back and copies.</strong> The moment the model has written “…reaching
+        out to&nbsp;No”, a single attention head — layer {INDUCTION["layer"]},
+        head {INDUCTION["head"]} — throws <strong>{_w:.0%} of its attention</strong> at the
+        “osa” it saw earlier in its instructions, and copies what came next:</p>
+        <div style="max-width:70rem;margin-top:0.75rem;line-height:2.2;">{_chips}</div>
+        <p class="az-caption">Every token of the prompt, shaded by how much this head attends to
+        it while writing the final “No…”. Heads that find-and-copy earlier text are called
+        <em>induction heads</em> — one of the first circuits ever reverse-engineered in LLMs.</p>
+        """,
+        section="06 · Inside the model",
+    )
+    return
+
+
+@app.cell
+def _(INDUCTION, mo):
+    # ── control for the attention-head explorer slide ──
+    head_pick = mo.ui.slider(
+        start=0, stop=15, step=1, value=INDUCTION["head"], label="attention head", show_value=True
+    )
+    return (head_pick,)
+
+
+@app.cell
+def _(INDUCTION, alt, chart_slide, head_pick, mo, pd):
+    # ══ Interp · attention explorer: all 16 heads of the induction layer ══
+    _toks = INDUCTION["tokens"]
+    _labels = [f"{i:02d}·{t.strip() or '␣'}" for i, t in enumerate(_toks)]
+    _pat = INDUCTION["layer_pattern"][head_pick.value]
+    _rows = [
+        {"dst": _labels[i], "src": _labels[j], "w": _pat[i][j]}
+        for i in range(len(_toks))
+        for j in range(i + 1)
+    ]
+    _chart = (
+        alt.Chart(pd.DataFrame(_rows))
+        .mark_rect()
+        .encode(
+            x=alt.X(
+                "src:O",
+                sort=_labels,
+                title="…looks back at this token",
+                axis=alt.Axis(labelFontSize=8, labelAngle=-60),
+            ),
+            y=alt.Y(
+                "dst:O",
+                sort=_labels,
+                title="while writing this token",
+                axis=alt.Axis(labelFontSize=8),
+            ),
+            color=alt.Color(
+                "w", scale=alt.Scale(scheme="blues"), legend=alt.Legend(title="attention")
+            ),
+            tooltip=[
+                alt.Tooltip("dst", title="writing"),
+                alt.Tooltip("src", title="looking at"),
+                alt.Tooltip("w", title="weight", format=".3f"),
+            ],
+        )
+        .properties(width=760, height=680)
+    )
+    chart_slide(
+        "Attention, live — pick a head",
+        mo.vstack([head_pick, _chart]),
+        f"All 16 heads of layer {INDUCTION['layer']}, same prompt — drag the slider. Notice "
+        f"the bright first column on almost every head: attention parked on the very first "
+        f"token, the model's resting position — a head must always look somewhere, and "
+        f"token one is its 'nowhere'. Head {INDUCTION['head']} idles there too — until its "
+        f"trigger: on the bottom row (writing “No”) it snaps 98% onto “osa”. Heads that "
+        f"find-and-continue earlier text like this are induction heads.",
+        "06 · Inside the model",
     )
     return
 
