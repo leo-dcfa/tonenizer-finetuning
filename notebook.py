@@ -755,6 +755,59 @@ def _(img_uri, slide):
 
 
 @app.cell
+def _(slide):
+    # ══ Process · step 4: train ══
+    slide(
+        "Step 4: Train",
+        """
+        <ul>
+          <li><strong>The knobs matter less than the data</strong> — learning rate,
+              epochs, batch size have sensible defaults in every tool; a bad dataset
+              can't be tuned around.</li>
+          <li><strong>Watch the loss</strong> — one number that says how wrong the
+              model's guesses are. It should fall fast, then flatten.</li>
+          <li><strong>Know when to stop</strong> — too few passes and the voice
+              doesn't stick; too many and the model memorises the examples instead
+              of learning the pattern.</li>
+          <li><strong>Context window</strong> — train on sequences as long as the
+              conversations you'll serve, no longer (you pay for every token).</li>
+        </ul>
+        <p style="margin-top: 1.5rem;">This step is the entire next section — including
+        the real loss curve from the run behind this deck.</p>
+        """,
+        section="Fine-tuning basics",
+    )
+    return
+
+
+@app.cell
+def _(slide):
+    # ══ Process · step 5: evaluate, deploy, monitor ══
+    slide(
+        "Step 5: Evaluate, deploy, monitor",
+        """
+        <ul>
+          <li><strong>Test on questions the model never saw</strong> — the held-out
+              split from step 1. Training loss can't tell learning from memorising;
+              held-out answers can.</li>
+          <li><strong>Evaluate behaviour, not vibes</strong> — check the things you
+              actually trained for (format, tone, refusals), ideally scored by a
+              bigger model as judge.</li>
+          <li><strong>Deploy is boring, on purpose</strong> — the adapter serves
+              behind the same API your code already speaks.</li>
+          <li><strong>Monitor after launch</strong> — real usage drifts away from the
+              training data; log, sample, re-evaluate, and fold what you learn into
+              the next dataset.</li>
+        </ul>
+        <p style="margin-top: 1.5rem;">Evaluation and deployment each get their own
+        section later — including a live demo you can try.</p>
+        """,
+        section="Fine-tuning basics",
+    )
+    return
+
+
+@app.cell
 def _(divider):
     divider(2, "How training works")
     return
